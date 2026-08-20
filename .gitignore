@@ -1,0 +1,32 @@
+# Sensitive / local
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.sw?
+
+# Runtime
+vendor/
+node_modules/
+dist/
+dist-ssr/
+/public/build/
+/storage/
+.phpunit.result.cache
+database/database.sqlite
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+storage/
+playwright-report/
+test-results/

@@ -1,0 +1,22 @@
+# Logs
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/storage/*.key
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# Cache & DB lokal
+/database/database.sqlite
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
