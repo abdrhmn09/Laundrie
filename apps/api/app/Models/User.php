@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -93,6 +95,108 @@ class User extends Authenticatable implements MustVerifyEmail
             self::ROLE_OPERATIONS_ADMIN,
             self::ROLE_FINANCE_ADMIN,
             self::ROLE_ADMIN,
-        ], true);
+        ], true) || $this->adminUser()->exists();
+    }
+
+    // ── One Account, Multiple Capabilities (PRD §5, Schema §4) ──
+
+    public function customer(): HasOne
+    {
+        return $this->hasOne(Customer::class);
+    }
+
+    public function ownedLaundry(): HasOne
+    {
+        return $this->hasOne(Laundry::class, 'user_id');
+    }
+
+    /** @return HasMany<Staff> */
+    public function staffMemberships(): HasMany
+    {
+        return $this->hasMany(Staff::class);
+    }
+
+    public function courierProfile(): HasOne
+    {
+        return $this->hasOne(Courier::class);
+    }
+
+    public function adminUser(): HasOne
+    {
+        return $this->hasOne(AdminUser::class);
+    }
+
+    /** @return HasMany<StaffApplication> */
+    public function staffApplications(): HasMany
+    {
+        return $this->hasMany(StaffApplication::class, 'user_id');
+    }
+
+    public function isManager(): bool
+    {
+        return $this->ownedLaundry()->exists();
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->staffMemberships()->where('status', 'ACTIVE')->exists()
+            || $this->staffMemberships()->exists(); // fallback for lowercase legacy
+    }
+
+    public function isCourier(): bool
+    {
+        return $this->courierProfile()->exists();
+    }
+
+    public function isFreelanceCourier(): bool
+    {
+        return (bool) $this->courierProfile()->where('courier_type', 'freelance')->exists();
+    }
+
+    public function isLaundryStaffCourier(): bool
+    {
+        return (bool) $this->courierProfile()->where('courier_type', 'laundry_staff')->exists();
+    }
+
+    /**
+     * Get all capabilities for profile hub (PRD §7.2).
+     * @return array<string, mixed>
+     */
+    public function getCapabilitiesAttribute(): array
+    {
+        $caps = ['customer' => true]; // every user is customer per PRD
+
+        if ($this->isManager()) {
+            $caps['manager'] = $this->ownedLaundry;
+        }
+
+        $staff = $this->staffMemberships()->with('laundry')->first();
+        if ($staff) {
+            $caps['staff'] = $staff;
+        }
+
+        $courier = $this->courierProfile;
+        if ($courier) {
+            $caps['courier'] = $courier;
+        }
+
+        $admin = $this->adminUser;
+        if ($admin) {
+            $caps['admin'] = $admin->role;
+        }
+
+        return $caps;
+    }
+
+    public function hasCapability(string $capability): bool
+    {
+        return match ($capability) {
+            'customer' => true,
+            'manager' => $this->isManager(),
+            'staff' => $this->isStaff(),
+            'courier' => $this->isCourier(),
+            'admin' => $this->isAdmin(),
+            default => false,
+        };
     }
 }

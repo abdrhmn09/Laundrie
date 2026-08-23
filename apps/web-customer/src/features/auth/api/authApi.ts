@@ -17,6 +17,19 @@ export interface User {
   phone_verified_at: string | null
   last_login_at: string | null
   created_at: string
+  capabilities?: {
+    is_customer: boolean
+    is_manager: boolean
+    is_staff: boolean
+    is_courier: boolean
+    is_freelance_courier: boolean
+    is_laundry_staff_courier: boolean
+    is_admin: boolean
+  }
+  laundry?: { id: number; business_name: string; status: string } | null
+  staff?: { id: number; laundry_id: number; laundry_name: string | null; role: string; status: string } | null
+  courier?: { id: number; courier_type: string; laundry_id: number | null; status: string } | null
+  admin?: { role: string } | null
 }
 
 export interface UserSession {

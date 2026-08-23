@@ -151,6 +151,100 @@ export default function ProfilePage() {
             </Link>
           </div>
 
+          {/* Capability Hub — PRD §7 One Account, Multiple Capabilities */}
+          <div className="card-lifted p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-lg font-bold text-on-surface">Peran & Kemampuan Anda</h2>
+              <span className="badge-active">PRD §7</span>
+            </div>
+            <p className="text-sm text-on-surface-variant">
+              Satu akun dapat menjadi Customer, Manager, Staff, dan Courier sekaligus tanpa membuat akun kedua.
+            </p>
+
+            {/* Existing capabilities */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="card p-4 border-l-4 border-l-primary">
+                <p className="text-xs font-bold tracking-widest text-primary">CUSTOMER</p>
+                <p className="font-display text-sm font-bold text-on-surface">Pelanggan</p>
+                <p className="text-xs text-on-surface-variant">Dapat memesan laundry & melacak pesanan</p>
+                <span className="badge-success mt-2">Aktif</span>
+              </div>
+
+              {user?.capabilities?.is_manager && user?.laundry ? (
+                <div className="card p-4 border-l-4 border-l-tertiary">
+                  <p className="text-xs font-bold tracking-widest text-tertiary">MANAGER</p>
+                  <p className="font-display text-sm font-bold text-on-surface">{user.laundry.business_name}</p>
+                  <p className="text-xs text-on-surface-variant">Status: {user.laundry.status}</p>
+                  <span className="badge-active mt-2">Owner</span>
+                </div>
+              ) : null}
+
+              {user?.capabilities?.is_staff && user?.staff ? (
+                <div className="card p-4 border-l-4 border-l-secondary">
+                  <p className="text-xs font-bold tracking-widest text-secondary">STAFF</p>
+                  <p className="font-display text-sm font-bold text-on-surface">{user.staff.laundry_name ?? 'Laundry'}</p>
+                  <p className="text-xs text-on-surface-variant">Role: {user.staff.role} • {user.staff.status}</p>
+                  <span className="badge-neutral mt-2">Staff Aktif</span>
+                </div>
+              ) : null}
+
+              {user?.capabilities?.is_courier && user?.courier ? (
+                <div className="card p-4 border-l-4 border-l-status-success">
+                  <p className="text-xs font-bold tracking-widest text-status-success">COURIER</p>
+                  <p className="font-display text-sm font-bold text-on-surface">
+                    {user.courier.courier_type === 'freelance' ? 'Freelance Courier' : 'Staff Courier'}
+                  </p>
+                  <p className="text-xs text-on-surface-variant">Status: {user.courier.status}</p>
+                  <span className="badge-success mt-2">{user.courier.courier_type}</span>
+                </div>
+              ) : null}
+
+              {user?.capabilities?.is_admin && user?.admin ? (
+                <div className="card p-4 border-l-4 border-l-error">
+                  <p className="text-xs font-bold tracking-widest text-error">ADMIN</p>
+                  <p className="font-display text-sm font-bold text-on-surface">{user.admin.role}</p>
+                  <span className="badge-error mt-2">Admin</span>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Onboarding CTA — only for users without those capabilities */}
+            {(!user?.capabilities?.is_manager || !user?.capabilities?.is_staff || !user?.capabilities?.is_courier) && (
+              <div className="space-y-3 pt-2">
+                <h3 className="font-display text-sm font-bold text-on-surface">Mulai Berperan di Laundrie</h3>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {!user?.capabilities?.is_manager && (
+                    <Link to="/profile/laundry/create" className="card p-4 hover:shadow-md transition-shadow text-left group">
+                      <div className="h-10 w-10 rounded-[--radius-md] bg-primary/10 flex items-center justify-center text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                      </div>
+                      <p className="font-display text-sm font-bold text-on-surface">Buat Laundry</p>
+                      <p className="text-xs text-on-surface-variant mt-1">Buka dan kelola laundry Anda</p>
+                    </Link>
+                  )}
+                  {!user?.capabilities?.is_staff && (
+                    <Link to="/profile/staff/discovery" className="card p-4 hover:shadow-md transition-shadow text-left group">
+                      <div className="h-10 w-10 rounded-[--radius-md] bg-secondary/10 flex items-center justify-center text-secondary mb-3 group-hover:bg-secondary group-hover:text-white transition-colors">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                      </div>
+                      <p className="font-display text-sm font-bold text-on-surface">Gabung sebagai Staff</p>
+                      <p className="text-xs text-on-surface-variant mt-1">Cari lowongan laundry</p>
+                    </Link>
+                  )}
+                  {!user?.capabilities?.is_courier && (
+                    <Link to="/profile/courier/onboarding" className="card p-4 hover:shadow-md transition-shadow text-left group">
+                      <div className="h-10 w-10 rounded-[--radius-md] bg-tertiary/10 flex items-center justify-center text-tertiary mb-3 group-hover:bg-tertiary group-hover:text-white transition-colors">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><circle cx="12" cy="12" r="10" /><polyline points="16 12 12 8 8 12" /><line x1="12" y1="16" x2="12" y2="8" /></svg>
+                      </div>
+                      <p className="font-display text-sm font-bold text-on-surface">Daftar sebagai Courier</p>
+                      <p className="text-xs text-on-surface-variant mt-1">Freelance atau Staff Courier</p>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <form onSubmit={handleSubmit} className="card-lifted p-6 space-y-6" noValidate>
             {successMsg && (
               <div className="rounded-[--radius-md] bg-status-success-container p-4 text-sm font-semibold text-status-success">

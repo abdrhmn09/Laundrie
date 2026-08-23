@@ -11,6 +11,9 @@ import ProfilePage from './features/auth/pages/ProfilePage'
 import ChangePasswordPage from './features/auth/pages/ChangePasswordPage'
 import SessionsPage from './features/auth/pages/SessionsPage'
 import DashboardPage from './features/auth/pages/DashboardPage'
+import CreateLaundryPage from './features/laundry/pages/CreateLaundryPage'
+import StaffDiscoveryPage from './features/staff/pages/StaffDiscoveryPage'
+import CourierOnboardingPage from './features/courier/pages/CourierOnboardingPage'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
 
 export default function App() {
@@ -31,6 +34,9 @@ export default function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/change-password" element={<ChangePasswordPage />} />
             <Route path="/profile/sessions" element={<SessionsPage />} />
+            <Route path="/profile/laundry/create" element={<CreateLaundryPage />} />
+            <Route path="/profile/staff/discovery" element={<StaffDiscoveryPage />} />
+            <Route path="/profile/courier/onboarding" element={<CourierOnboardingPage />} />
           </Route>
         </Routes>
       </AuthProvider>
