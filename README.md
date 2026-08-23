@@ -15,12 +15,16 @@ Penjemputan, Pengantaran & Marketplace Laundry — dengan verifikasi berat trans
 ```
 laundrie/
 ├── apps/
-│   ├── web/                         → React + TS + Vite PWA (customer/partner/courier UI)
-│   │   ├── src/features/            → auth, customer, partner, courier, orders,
+│   ├── web-customer/                → Customer PWA (PRD §6.1) — pencarian, order, tracking
+│   ├── web-manager/                 → Manager Dashboard (PRD §6.1)
+│   ├── web-staff/                   → Staff Operational PWA
+│   ├── web-courier/                 → Courier PWA (pickup/delivery)
+│   ├── web-admin/                   → Admin Portal (11 screen Design.md §28)
+│   │   ├── src/features/            → auth, landing, customer, laundry, courier, orders,
 │   │   │                              weighing, evidence, invoices
-│   │   └── src/shared/              → komponen & util bersama
+│   │   └── src/shared/              → komponen & util bersama (motion, Brand, Field)
 │   └── api/                         → Laravel 13 modular monolith
-│       ├── app/Domain/              → Auth, Customer, Partner, Courier, Order,
+│       ├── app/Domain/              → Auth, Customer, Laundry, Courier, Order,
 │       │                              Pricing, Weighing, Evidence, Payment,
 │       │                              Invoice, Notification, Complaint,
 │       │                              Settlement, Admin
@@ -29,21 +33,24 @@ laundrie/
 ├── infrastructure/
 │   ├── docker/
 │   └── nginx/
-├── docs/
-│   ├── architecture/architecture.md ← dokumen arsitektur (ini sumber utama)
-│   ├── api/
-│   └── operations/
-├── DESIGN.md                        ← design system (Stitch) & token visual
+├── docs/                            → living docs (single source of truth)
+│   ├── PRD.md
+│   ├── Architecture.md
+│   ├── Design.md
+│   ├── Schema.md
+│   └── Rule.md
 └── README.md
 ```
 
 ## Dokumentasi
 
-| Dokumen | Lokasi |
-|---|---|
-| Arsitektur | `docs/architecture/architecture.md` |
-| Design system | `DESIGN.md` (sumber: Stitch `assets/12460762412709776271`) |
-| PRD | `docs/laundrie-prd-v2-id.md` |
+| Dokumen | Lokasi | Sumber |
+|---|---|---|
+| PRD | `docs/PRD.md` (v3.3) | Business goals & UX |
+| Arsitektur | `docs/Architecture.md` (v2.2) | State machine, domain, API |
+| Schema | `docs/Schema.md` (v1.1) | Kolom/tabel — sumber tunggal |
+| Design | `docs/Design.md` (v3.3) | Layar, token, komponen |
+| Rules | `docs/Rule.md` (v1.1) | Larangan & konvensi AI/engineering |
 
 ## Status
 
@@ -57,8 +64,8 @@ laundrie/
   - `GET /api/v1/auth/me` — profil pengguna terautentikasi
   - Rate limiting login (5 percobaan/menit per IP), pengecekan status akun (aktif/suspended/pending)
   - **19 tes feature lulus** (76 assertions) via PHPUnit (MySQL `laundrie_test`).
-- **Fitur Autentikasi (Web)** — React + TS + Vite + Tailwind di `apps/web`
-  - Halaman login, registrasi, dan dashboard terlindungi
+- **Fitur Autentikasi (Web)** — React + TS + Vite + Tailwind di `apps/web-customer`
+  - Halaman login, registrasi, dashboard terlindungi + landing page dengan motion reusable (`FadeIn`, `SlideIn`, `Stagger`, `AnimateOnView`)
   - Integrasi API via proxy dev Vite, token di `localStorage`
   - **5 tes E2E Playwright lulus** (registrasi, login sukses/gagal, logout, proteksi route).
 
@@ -68,8 +75,8 @@ laundrie/
 # API (perlu MySQL di 127.0.0.1:3307, DB `laundrie`/`laundrie_test`)
 cd apps/api && php artisan test
 
-# Web (perlu API berjalan di :8000 dan dev server web di :5173)
-cd apps/web && npm run dev &     # web
+# Web Customer (perlu API di :8000 dan dev server di :5173)
+cd apps/web-customer && npm run dev &     # web-customer
 cd apps/api && php artisan serve --host=127.0.0.1 --port=8000 &
-cd apps/web && npm run test:e2e   # Playwright
+cd apps/web-customer && npm run test:e2e   # Playwright
 ```

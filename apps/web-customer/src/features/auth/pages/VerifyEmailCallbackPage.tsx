@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
 import { FadeIn } from '../../../shared/components/motion'
 import { authApi } from '../api/authApi'

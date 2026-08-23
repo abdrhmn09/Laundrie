@@ -15,7 +15,7 @@ export function AnimateOnView({
   className = '',
   as: Tag = 'div',
 }: AnimateOnViewProps) {
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
     const el = ref.current
@@ -44,7 +44,8 @@ export function AnimateOnView({
   }, [triggerOnce, threshold])
 
   return (
-    <Tag ref={ref} className={`motion-on-view ${className}`}>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <Tag ref={ref as any} className={`motion-on-view ${className}`}>
       {children}
     </Tag>
   )

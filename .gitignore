@@ -30,3 +30,9 @@ bootstrap/cache/*
 storage/
 playwright-report/
 test-results/
+
+# Generated / tooling
+.opencode/
+graphify-out/
+apps/api/public/storage
+apps/api/public/build

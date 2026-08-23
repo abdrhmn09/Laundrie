@@ -83,7 +83,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearToken()
       setToken(null)
       setUser(null)
-      return null
     }
   }, [])
 
