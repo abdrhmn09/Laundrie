@@ -6,7 +6,7 @@ test('halaman login menampilkan form dan validasi kosong', async ({ page }) => {
   await page.goto(`${WEB_URL}/login`)
   await expect(page.getByRole('heading', { name: 'Selamat datang kembali' })).toBeVisible()
   await expect(page.getByLabel('Email')).toBeVisible()
-  await expect(page.getByLabel('Password')).toBeVisible()
+  await expect(page.getByLabel('Password', { exact: true })).toBeVisible()
 })
 
 test('registrasi pengguna baru berhasil dan masuk ke dashboard', async ({ page }) => {
@@ -26,7 +26,7 @@ test('registrasi pengguna baru berhasil dan masuk ke dashboard', async ({ page }
 test('login gagal dengan password salah menampilkan pesan error', async ({ page }) => {
   await page.goto(`${WEB_URL}/login`)
   await page.getByLabel('Email').fill('pengguna-tidak-ada@example.com')
-  await page.getByLabel('Password').fill('salah123')
+  await page.getByLabel('Password', { exact: true }).fill('salah123')
   await page.getByRole('button', { name: 'Masuk' }).click()
 
   await expect(page.getByText(/Email atau password salah/i).first()).toBeVisible({ timeout: 10000 })
@@ -46,12 +46,12 @@ test('alur lengkap: register -> logout -> login -> dashboard', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Selamat datang kembali' })).toBeVisible()
 
   await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password').fill('password123')
+  await page.getByLabel('Password', { exact: true }).fill('password123')
   await page.getByRole('button', { name: 'Masuk' }).click()
   await expect(page.getByText('Selamat datang, Alur')).toBeVisible({ timeout: 10000 })
 })
 
 test('akses halaman utama tanpa login dialihkan ke /login', async ({ page }) => {
-  await page.goto(`${WEB_URL}/`)
+  await page.goto(`${WEB_URL}/dashboard`)
   await expect(page).toHaveURL(/\/login/, { timeout: 10000 })
 })

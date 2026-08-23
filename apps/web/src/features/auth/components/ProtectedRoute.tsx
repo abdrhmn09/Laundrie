@@ -1,8 +1,16 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-export default function ProtectedRoute() {
-  const { isAuthenticated, isLoading } = useAuth()
+interface ProtectedRouteProps {
+  allowedRoles?: string[]
+  requireVerified?: boolean
+}
+
+export default function ProtectedRoute({
+  allowedRoles,
+  requireVerified = false,
+}: ProtectedRouteProps) {
+  const { user, isAuthenticated, isLoading } = useAuth()
 
   if (isLoading) {
     return (
@@ -12,8 +20,16 @@ export default function ProtectedRoute() {
     )
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />
+  }
+
+  if (requireVerified && !user.email_verified) {
+    return <Navigate to="/verify-email" replace />
+  }
+
+  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />
   }
 
   return <Outlet />

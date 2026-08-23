@@ -21,11 +21,11 @@ class AuthRegisterTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-            ->assertJsonPath('message', 'Pendaftaran berhasil.')
+            ->assertJsonPath('message', 'Pendaftaran berhasil. Silakan periksa email Anda untuk verifikasi.')
             ->assertJsonPath('user.name', 'Budi Santoso')
             ->assertJsonPath('user.email', 'budi@example.com')
             ->assertJsonPath('user.role', 'customer')
-            ->assertJsonPath('user.status', 'active')
+            ->assertJsonPath('user.status', 'email_unverified')
             ->assertJsonPath('token_type', 'Bearer')
             ->assertJsonStructure([
                 'user' => ['id', 'name', 'email', 'phone', 'role', 'status'],
@@ -35,7 +35,7 @@ class AuthRegisterTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'budi@example.com',
             'role' => 'customer',
-            'status' => 'active',
+            'status' => 'email_unverified',
         ]);
     }
 
@@ -86,20 +86,5 @@ class AuthRegisterTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['role']);
-    }
-
-    public function test_admin_register_starts_pending_verification(): void
-    {
-        $response = $this->postJson('/api/v1/auth/register', [
-            'name' => 'Admin Platform',
-            'email' => 'admin@laundrie.id',
-            'password' => 'rahasia123',
-            'password_confirmation' => 'rahasia123',
-            'role' => 'admin',
-        ]);
-
-        $response->assertStatus(201)
-            ->assertJsonPath('user.role', 'admin')
-            ->assertJsonPath('user.status', 'pending_verification');
     }
 }

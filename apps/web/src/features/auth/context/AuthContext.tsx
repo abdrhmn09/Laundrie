@@ -6,22 +6,20 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { authApi, clearToken, getToken, saveToken, type User } from '../api/authApi'
+import { authApi, clearToken, getToken, saveToken, type AuthResponse, type User } from '../api/authApi'
+
+type RegisterPayload = Parameters<typeof authApi.register>[0]
 
 interface AuthContextValue {
   user: User | null
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<User>
-  register: (data: {
-    name: string
-    email: string
-    phone?: string
-    password: string
-    password_confirmation: string
-  }) => Promise<User>
+  login: (email: string, password: string) => Promise<AuthResponse>
+  register: (data: RegisterPayload) => Promise<AuthResponse>
   logout: () => Promise<void>
+  refreshUser: () => Promise<User | null>
+  setUser: (user: User | null) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -31,49 +29,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(getToken())
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
+  const refreshUser = useCallback(async () => {
+    const stored = getToken()
+    if (!stored) {
+      setUser(null)
+      return null
+    }
+
+    try {
+      const res = await authApi.me()
+      setUser(res.user)
+      return res.user
+    } catch {
+      clearToken()
+      setToken(null)
+      setUser(null)
+      return null
+    }
+  }, [])
+
   useEffect(() => {
     const bootstrap = async () => {
-      const stored = getToken()
-      if (!stored) {
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        const { user } = await authApi.me()
-        setUser(user)
-      } catch {
-        clearToken()
-        setToken(null)
-      } finally {
-        setIsLoading(false)
-      }
+      await refreshUser()
+      setIsLoading(false)
     }
 
     void bootstrap()
-  }, [])
+  }, [refreshUser])
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authApi.login({ email, password, device_name: navigator.userAgent })
     saveToken(res.token)
     setToken(res.token)
     setUser(res.user)
-    return res.user
+    return res
   }, [])
 
   const register = useCallback(
-    async (data: {
-      name: string
-      email: string
-      phone?: string
-      password: string
-      password_confirmation: string
-    }) => {
+    async (data: RegisterPayload) => {
       const res = await authApi.register(data)
       saveToken(res.token)
       setToken(res.token)
       setUser(res.user)
-      return res.user
+      return res
     },
     [],
   )
@@ -85,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearToken()
       setToken(null)
       setUser(null)
+      return null
     }
   }, [])
 
@@ -98,6 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        refreshUser,
+        setUser,
       }}
     >
       {children}
