@@ -78,8 +78,8 @@ export default function DashboardPage() {
             <h3 className="font-display font-bold">Staff & Lowongan</h3>
             <p className="text-sm text-on-surface-variant mt-1">Kelola rekrutmen dan aktivasi staff.</p>
             <div className="mt-4 flex gap-2">
+              <Link to="/staff/applications" className="btn-primary !h-8 !px-3 text-xs">Kelola Pendaftar →</Link>
               <span className="badge-neutral">Staff Management</span>
-              <span className="badge-neutral">Staff Applications</span>
             </div>
           </div>
           <div className="card-lifted p-6">
