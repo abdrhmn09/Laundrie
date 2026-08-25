@@ -1,6 +1,13 @@
 <?php
 
 use App\Domain\Auth\Http\Controllers\AuthController;
+use App\Domain\Courier\Http\Controllers\ProfileCourierController;
+use App\Domain\Laundry\Http\Controllers\LaundryStaffApplicationController;
+use App\Domain\Laundry\Http\Controllers\LaundryStaffOpeningController;
+use App\Domain\Laundry\Http\Controllers\ProfileLaundryController;
+use App\Domain\Laundry\Http\Controllers\StaffApplicationController;
+use App\Domain\Laundry\Http\Controllers\StaffOpeningController;
+use App\Domain\Verification\Http\Controllers\VerificationDocumentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/auth')->group(function () {
@@ -25,4 +32,36 @@ Route::prefix('v1/auth')->group(function () {
         Route::delete('/sessions/{id}', [AuthController::class, 'revokeSession']);
         Route::delete('/sessions', [AuthController::class, 'revokeAllSessions']);
     });
+});
+
+// ── Profile as Capability Hub (PRD §7, Architecture §9.2.x) ──
+Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+    Route::get('/profile/options', [ProfileLaundryController::class, 'options']);
+    Route::post('/profile/laundry', [ProfileLaundryController::class, 'store']);
+    Route::get('/profile/laundry', [ProfileLaundryController::class, 'show']);
+
+    Route::post('/profile/courier/freelance', [ProfileCourierController::class, 'storeFreelance']);
+    Route::post('/profile/courier/staff', [ProfileCourierController::class, 'storeStaff']);
+
+    // Staff discovery & applications
+    Route::get('/staff-openings', [StaffOpeningController::class, 'index']);
+    Route::get('/staff-openings/{id}', [StaffOpeningController::class, 'show']);
+    Route::post('/staff-openings/{openingId}/apply', [StaffOpeningController::class, 'apply']);
+
+    Route::get('/me/staff-applications', [StaffApplicationController::class, 'index']);
+    Route::post('/staff-applications/{id}/withdraw', [StaffApplicationController::class, 'withdraw']);
+
+    // Manager-only laundry openings & applications
+    Route::post('/laundry/staff-openings', [LaundryStaffOpeningController::class, 'store']);
+    Route::get('/laundry/staff-openings', [LaundryStaffOpeningController::class, 'index']);
+    Route::patch('/laundry/staff-openings/{id}', [LaundryStaffOpeningController::class, 'update']);
+    Route::post('/laundry/staff-openings/{id}/close', [LaundryStaffOpeningController::class, 'close']);
+
+    Route::get('/laundry/staff-applications', [LaundryStaffApplicationController::class, 'index']);
+    Route::post('/laundry/staff-applications/{id}/accept', [LaundryStaffApplicationController::class, 'accept']);
+    Route::post('/laundry/staff-applications/{id}/reject', [LaundryStaffApplicationController::class, 'reject']);
+
+    // Verification documents — Schema §4.26
+    Route::post('/verification-documents', [VerificationDocumentController::class, 'store']);
+    Route::get('/verification-documents', [VerificationDocumentController::class, 'index']);
 });

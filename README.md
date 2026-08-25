@@ -32,6 +32,8 @@ laundrie/
 │       └── tests/
 ├── infrastructure/
 │   ├── docker/
+│   │   └── docker-compose.yml    → Postgres 16 + Redis 7 + MySQL transisi (name: laundrie)
+│   ├── docker-compose.yml        → symlink/duplikat untuk `docker compose -f infrastructure/docker-compose.yml up -d`
 │   └── nginx/
 ├── docs/                            → living docs (single source of truth)
 │   ├── PRD.md
@@ -69,14 +71,25 @@ laundrie/
   - Integrasi API via proxy dev Vite, token di `localStorage`
   - **5 tes E2E Playwright lulus** (registrasi, login sukses/gagal, logout, proteksi route).
 
+### Menjalankan Infra (Postgres + Redis per Architecture.md:4,14)
+
+```bash
+docker compose -f infrastructure/docker/docker-compose.yml up -d   # atau -f infrastructure/docker-compose.yml
+docker ps | grep laundrie
+```
+
 ### Menjalankan Pengujian
 
 ```bash
-# API (perlu MySQL di 127.0.0.1:3307, DB `laundrie`/`laundrie_test`)
+# API (perlu Postgres di 127.0.0.1:5432 + Redis di 6379, DB `laundrie`/`laundrie_test`)
+cd apps/api && php artisan migrate:fresh --seed
 cd apps/api && php artisan test
+# Horizon (queue redis)
+php artisan horizon
 
 # Web Customer (perlu API di :8000 dan dev server di :5173)
-cd apps/web-customer && npm run dev &     # web-customer
+cd apps/web-customer && npm run dev &     # web-customer :5173
 cd apps/api && php artisan serve --host=127.0.0.1 --port=8000 &
 cd apps/web-customer && npm run test:e2e   # Playwright
+# 5 app: 5173 customer, 5174 manager, 5175 staff, 5176 courier, 5177 admin
 ```
