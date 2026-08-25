@@ -15,7 +15,7 @@ class VerificationDocumentController extends \App\Http\Controllers\Controller
         $ownerType = $request->input('owner_type');
         $ownerId = (int) $request->input('owner_id');
 
-        // Authorization: user must own the laundry or courier
+        // Authorization: user must own the laundry/courier/user/staff_application
         if ($ownerType === 'laundry') {
             $laundry = \App\Models\Laundry::findOrFail($ownerId);
             if ($laundry->user_id !== $user->id && ! $user->isAdmin()) {
@@ -25,6 +25,15 @@ class VerificationDocumentController extends \App\Http\Controllers\Controller
             $courier = \App\Models\Courier::findOrFail($ownerId);
             if ($courier->user_id !== $user->id && ! $user->isAdmin()) {
                 return response()->json(['message' => 'Anda bukan pemilik courier ini.'], 403);
+            }
+        } elseif ($ownerType === 'user') {
+            if ((int) $ownerId !== $user->id && ! $user->isAdmin()) {
+                return response()->json(['message' => 'Anda bukan pemilik dokumen ini.'], 403);
+            }
+        } elseif ($ownerType === 'staff_application') {
+            $app = \App\Models\StaffApplication::findOrFail($ownerId);
+            if ($app->user_id !== $user->id && $app->laundry->user_id !== $user->id && ! $user->isAdmin()) {
+                return response()->json(['message' => 'Anda tidak berhak mengakses lamaran ini.'], 403);
             }
         }
 
@@ -60,12 +69,25 @@ class VerificationDocumentController extends \App\Http\Controllers\Controller
         if (! $user->isAdmin()) {
             $laundryIds = $user->ownedLaundry ? [$user->ownedLaundry->id] : [];
             $courierIds = $user->courierProfile ? [$user->courierProfile->id] : [];
-            $query->where(function ($q) use ($laundryIds, $courierIds) {
-                $q->where(function ($qq) use ($laundryIds) {
-                    $qq->where('owner_type', 'laundry')->whereIn('owner_id', $laundryIds);
+            $staffAppIds = $user->staffApplications()->pluck('id')->toArray();
+            $query->where(function ($q) use ($laundryIds, $courierIds, $user, $staffAppIds) {
+                $q->where(function ($qq) use ($user) {
+                    $qq->where('owner_type', 'user')->where('owner_id', $user->id);
+                })->orWhere(function ($qq) use ($laundryIds) {
+                    if (!empty($laundryIds)) $qq->where('owner_type', 'laundry')->whereIn('owner_id', $laundryIds);
                 })->orWhere(function ($qq) use ($courierIds) {
-                    $qq->where('owner_type', 'courier')->whereIn('owner_id', $courierIds);
+                    if (!empty($courierIds)) $qq->where('owner_type', 'courier')->whereIn('owner_id', $courierIds);
+                })->orWhere(function ($qq) use ($staffAppIds) {
+                    if (!empty($staffAppIds)) $qq->where('owner_type', 'staff_application')->whereIn('owner_id', $staffAppIds);
                 });
+                // Manager also sees documents for applications to their laundry
+                if (!empty($laundryIds)) {
+                    $q->orWhere(function ($qq) use ($laundryIds) {
+                        $qq->where('owner_type', 'staff_application')->whereIn('owner_id', function ($sub) use ($laundryIds) {
+                            $sub->select('id')->from('staff_applications')->whereIn('laundry_id', $laundryIds);
+                        });
+                    });
+                }
             });
         }
 

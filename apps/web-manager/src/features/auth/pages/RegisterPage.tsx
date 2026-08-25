@@ -55,8 +55,8 @@ export default function RegisterPage() {
       setError({ message: 'Anda wajib menyetujui Syarat & Ketentuan.' })
       return
     }
-    if (!ktpFile || !nibFile || !fotoLokasiFile) {
-      setError({ message: 'Semua dokumen wajib diunggah: KTP, NIB, dan Foto Lokasi (wajib).' })
+    if (!ktpFile || !fotoLokasiFile) {
+      setError({ message: 'Dokumen wajib: KTP dan Foto Lokasi harus diunggah. NIB opsional.' })
       return
     }
     setSubmitting(true)
@@ -215,9 +215,10 @@ export default function RegisterPage() {
               <input id="ktp" type="file" accept="image/*,.pdf" required className="input" onChange={(e) => setKtpFile(e.target.files?.[0] ?? null)} />
               {ktpFile && <p className="text-xs text-status-success">Terpilih: {ktpFile.name}</p>}
             </Field>
-            <Field id="nib" label="NIB / Izin Usaha *">
-              <input id="nib" type="file" accept="image/*,.pdf" required className="input" onChange={(e) => setNibFile(e.target.files?.[0] ?? null)} />
+            <Field id="nib" label="NIB / Izin Usaha (Opsional)">
+              <input id="nib" type="file" accept="image/*,.pdf" className="input" onChange={(e) => setNibFile(e.target.files?.[0] ?? null)} />
               {nibFile && <p className="text-xs text-status-success">Terpilih: {nibFile.name}</p>}
+              <p className="text-xs text-on-surface-variant">Opsional — bisa diunggah atau tidak, tetap ditampilkan.</p>
             </Field>
             <Field id="foto_lokasi" label="Foto Lokasi Usaha *">
               <input id="foto_lokasi" type="file" accept="image/*" required className="input" onChange={(e) => setFotoLokasiFile(e.target.files?.[0] ?? null)} />
@@ -232,7 +233,7 @@ export default function RegisterPage() {
             </label>
           </div>
 
-          <button type="submit" disabled={submitting || !agreed || !ktpFile || !nibFile || !fotoLokasiFile} className="btn-primary w-full">
+          <button type="submit" disabled={submitting || !agreed || !ktpFile || !fotoLokasiFile} className="btn-primary w-full">
             {submitting && <span className="spinner" aria-hidden="true" />}
             {submitting ? 'Memproses...' : isLoggedIn ? 'Buat Laundry Sekarang' : 'Daftar & Buat Laundry'}
           </button>

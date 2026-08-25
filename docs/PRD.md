@@ -307,14 +307,14 @@ Profil
 ```
 
 ### Data
-- business name;
-- legal name;
-- contact;
-- address (alamat operasional laundry tersendiri, terpisah dari alamat pribadi manajer);
-- latitude/longitude;
-- operating hours;
-- capacity;
-- dokumen verifikasi sesuai policy.
+- business name (wajib);
+- legal name (opsional);
+- contact (wajib);
+- address (alamat operasional laundry tersendiri, terpisah dari alamat pribadi manajer, wajib);
+- latitude/longitude (opsional);
+- operating hours (opsional);
+- capacity (opsional);
+- dokumen verifikasi: KTP pemilik (wajib), foto lokasi usaha (wajib), NIB/izin usaha (opsional, tetap ditampilkan kolom input).
 
 ### Setelah create
 `laundries.user_id = current user`.
@@ -392,6 +392,7 @@ staff_courier
 User
 → Pilih Laundry
 → Lihat Lowongan
+→ Unggah KTP (wajib)
 → Lamar sebagai Staff
 → PENDING
 → Manager Review
@@ -473,12 +474,12 @@ Bekerja sebagai Staff laundry dan juga menjalankan pickup/delivery.
 ### 12.2 Freelance
 
 Input:
-- identity;
-- phone;
-- vehicle;
-- service area;
-- payout;
-- verification document.
+- identity (wajib);
+- phone (wajib);
+- vehicle (wajib);
+- service area (opsional);
+- payout (opsional);
+- dokumen verifikasi wajib: KTP, SIM, STNK (Schema §4.26, Design §25).
 
 Result:
 
