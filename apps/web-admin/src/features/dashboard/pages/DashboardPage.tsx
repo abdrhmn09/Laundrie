@@ -42,6 +42,9 @@ export default function DashboardPage() {
           <div className="flex flex-wrap gap-2 mt-3">
             {['Dashboard Operasional','Orders Management','Laundry Moderasi','Courier Moderasi','Evidence Compliance','Complaints','Payments','Settlements','Audit Logs','Settings','Users'].map(s => <span key={s} className="badge-neutral">{s}</span>)}
           </div>
+          <div className="mt-4">
+            <a href="/verifications" className="btn-primary !h-9 !px-4 text-xs">Kelola Dokumen Verifikasi →</a>
+          </div>
           <p className="text-xs text-on-surface-variant mt-3">Akses dibatasi per role — Finance tidak bisa override order, Ops tidak bisa eksekusi payout (PRD §20.2).</p>
         </div>
       </main>

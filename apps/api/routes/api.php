@@ -7,6 +7,7 @@ use App\Domain\Laundry\Http\Controllers\LaundryStaffOpeningController;
 use App\Domain\Laundry\Http\Controllers\ProfileLaundryController;
 use App\Domain\Laundry\Http\Controllers\StaffApplicationController;
 use App\Domain\Laundry\Http\Controllers\StaffOpeningController;
+use App\Domain\Admin\Http\Controllers\AdminVerificationController;
 use App\Domain\Verification\Http\Controllers\VerificationDocumentController;
 use Illuminate\Support\Facades\Route;
 
@@ -64,4 +65,11 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     // Verification documents — Schema §4.26
     Route::post('/verification-documents', [VerificationDocumentController::class, 'store']);
     Route::get('/verification-documents', [VerificationDocumentController::class, 'index']);
+});
+
+// ── Admin verification management (PRD §20, Architecture §9.2.1) ──
+Route::prefix('v1/admin')->middleware('auth:sanctum')->group(function () {
+    Route::get('/verification-documents', [AdminVerificationController::class, 'index']);
+    Route::get('/verification-documents/{id}', [AdminVerificationController::class, 'show']);
+    Route::post('/verification-documents/{id}/review', [AdminVerificationController::class, 'review']);
 });
