@@ -24,6 +24,7 @@ export default function RegisterPage() {
   const [loadingOpenings, setLoadingOpenings] = useState(false)
   const [selectedOpening, setSelectedOpening] = useState<number | null>(null)
   const [applicationType, setApplicationType] = useState<'staff' | 'staff_courier'>('staff')
+  const [ktpFile, setKtpFile] = useState<File | null>(null)
 
   const [showPassword, setShowPassword] = useState(false)
   const [agreed, setAgreed] = useState(false)
@@ -59,6 +60,10 @@ export default function RegisterPage() {
       setError({ message: 'Pilih lowongan terlebih dahulu.' })
       return
     }
+    if (!ktpFile) {
+      setError({ message: 'KTP wajib diunggah (wajib).' })
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
@@ -83,6 +88,30 @@ export default function RegisterPage() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw { message: data?.message ?? 'Gagal melamar.', errors: data?.errors }
+      // Upload KTP wajib setelah lamaran (Schema §4.26)
+      if (ktpFile) {
+        const appId = data?.application?.id
+        const userId = data?.application?.user_id ?? user?.id
+        if (appId && token) {
+          const fd = new FormData()
+          fd.append('owner_type', 'staff_application')
+          fd.append('owner_id', String(appId))
+          fd.append('document_type', 'KTP')
+          fd.append('file', ktpFile)
+          const docHeaders: Record<string, string> = { Accept: 'application/json' }
+          if (token) docHeaders.Authorization = `Bearer ${token}`
+          await fetch('/api/v1/verification-documents', { method: 'POST', headers: docHeaders, body: fd })
+        } else if (userId && token) {
+          const fd = new FormData()
+          fd.append('owner_type', 'user')
+          fd.append('owner_id', String(userId))
+          fd.append('document_type', 'KTP')
+          fd.append('file', ktpFile)
+          const docHeaders: Record<string, string> = { Accept: 'application/json' }
+          if (token) docHeaders.Authorization = `Bearer ${token}`
+          await fetch('/api/v1/verification-documents', { method: 'POST', headers: docHeaders, body: fd })
+        }
+      }
       navigate('/dashboard')
     } catch (err) {
       const e = err as ApiError
@@ -167,6 +196,10 @@ export default function RegisterPage() {
                 <option value="staff_courier">Staff + Courier (jika laundry butuh kurir)</option>
               </select>
             </Field>
+            <Field id="ktp" label="KTP (Wajib) *">
+              <input id="ktp" type="file" accept="image/*,.pdf" required className="input" onChange={(e) => setKtpFile(e.target.files?.[0] ?? null)} />
+              {ktpFile && <p className="text-xs text-status-success">Terpilih: {ktpFile.name}</p>}
+            </Field>
           </div>
 
           <div className="flex items-start gap-2.5 pt-1">
@@ -176,7 +209,7 @@ export default function RegisterPage() {
             </label>
           </div>
 
-          <button type="submit" disabled={submitting || !agreed} className="btn-primary w-full">
+          <button type="submit" disabled={submitting || !agreed || !ktpFile || !selectedOpening} className="btn-primary w-full">
             {submitting && <span className="spinner" aria-hidden="true" />}
             {submitting ? 'Mengirim Lamaran…' : isLoggedIn ? 'Kirim Lamaran Staff' : 'Daftar & Lamar Staff'}
           </button>

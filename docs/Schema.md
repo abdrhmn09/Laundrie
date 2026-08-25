@@ -607,9 +607,9 @@ Field khusus provider autentikasi (mis. OAuth) ditambahkan sebagai tabel terpisa
 | Kolom Tipe Null Default Keterangan  |                         |     |                    |                                               |
 | ----------------------------------- | ----------------------- | --- | ------------------ | --------------------------------------------- |
 | id                                  | BIGINT (PK, AI)         | No  | -                  |                                               |
-| owner\_type                         | VARCHAR(10)             | No  | -                  | enum: laundry, courier                        |
-| owner\_id                           | BIGINT                  | No  | -                  | id laundry atau courier (sesuai `owner_type`) |
-| document\_type                      | VARCHAR(50)             | No  | -                  | mis: ktp, npwp, izin\_usaha, siup, sim, stnk  |
+| owner\_type                         | VARCHAR(20)             | No  | -                  | enum: laundry, courier, user, staff_application |
+| owner\_id                           | BIGINT                  | No  | -                  | id owner sesuai `owner_type` (laundry/courier/user/staff_application) |
+| document\_type                      | VARCHAR(50)             | No  | -                  | mis: ktp, nib, foto_lokasi, sim, stnk — nib opsional untuk laundry, ktp wajib untuk staff |
 | file\_path                          | VARCHAR(255)            | No  | -                  | object key di storage privat                  |
 | status                              | VARCHAR(20)             | No  | 'PENDING'          | enum: PENDING, APPROVED, REJECTED             |
 | reviewed\_by                        | BIGINT (FK -> users.id) | Yes | NULL               | staf/admin yang meninjau                      |

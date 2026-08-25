@@ -11,7 +11,7 @@ class StoreVerificationDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'owner_type'    => ['required', 'in:laundry,courier'],
+            'owner_type'    => ['required', 'in:laundry,courier,user,staff_application'],
             'owner_id'      => ['required', 'integer'],
             'document_type' => ['required', 'string', 'max:50'],
             'file'          => ['required', 'file', 'mimes:jpeg,png,jpg,pdf,webp', 'max:5120'],

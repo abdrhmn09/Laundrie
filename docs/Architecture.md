@@ -138,6 +138,8 @@ Aturan:
 - User yang sudah Staff dapat mengaktifkan profil courier laundry melalui flow Manager atau flow profil yang dibatasi pada laundry tempat user menjadi Staff.
 - Satu user dapat menjadi Customer, Staff, dan Courier sekaligus. Satu akun tidak perlu diduplikasi.
 
+> **Update 24 Agu 2026 — pendaftaran per-web:** `web-customer` `5173` hanya untuk *Pelanggan* (tanpa pilihan role). `Profil → Buat Laundry` mengarah ke `web-manager` `5174/register?token=` (KTP + foto lokasi wajib, NIB opsional tetap tampil), `Gabung Staff` ke `web-staff` `5175/register?token=` (pilih lowongan OPEN + KTP wajib), `Daftar Courier` ke `web-courier` `5176/register?token=` (KTP+SIM+STNK wajib). Token forwarding via `AuthContext ?token=` memungkinkan SSO lintas port (tanpa akun kedua, Rule §53). Dokumen disimpan di `verification_documents` (`owner_type` = laundry/courier/user/staff_application, `document_type` = ktp/nib/foto_lokasi/sim/stnk).
+
 
 **Sistem eksternal:**
 
