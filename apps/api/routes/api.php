@@ -35,6 +35,12 @@ Route::prefix('v1/auth')->group(function () {
     });
 });
 
+// ── Public staff openings (tidak perlu auth untuk lihat daftar lowongan) ──
+Route::prefix('v1')->group(function () {
+    Route::get('/staff-openings', [StaffOpeningController::class, 'index']);
+    Route::get('/staff-openings/{id}', [StaffOpeningController::class, 'show']);
+});
+
 // ── Profile as Capability Hub (PRD §7, Architecture §9.2.x) ──
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/profile/options', [ProfileLaundryController::class, 'options']);
@@ -44,9 +50,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::post('/profile/courier/freelance', [ProfileCourierController::class, 'storeFreelance']);
     Route::post('/profile/courier/staff', [ProfileCourierController::class, 'storeStaff']);
 
-    // Staff discovery & applications
-    Route::get('/staff-openings', [StaffOpeningController::class, 'index']);
-    Route::get('/staff-openings/{id}', [StaffOpeningController::class, 'show']);
+    // Staff applications (butuh auth)
     Route::post('/staff-openings/{openingId}/apply', [StaffOpeningController::class, 'apply']);
 
     Route::get('/me/staff-applications', [StaffApplicationController::class, 'index']);

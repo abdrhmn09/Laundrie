@@ -51,28 +51,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # MySQL dipertahankan untuk transisi, akan dihapus setelah Postgres stabil
-  mysql:
-    image: mysql:8.0
-    container_name: laundrie-mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: root_secret
-      MYSQL_DATABASE: laundrie
-      MYSQL_USER: laundrie
-      MYSQL_PASSWORD: laundrie_secret
-    ports:
-      - "3307:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "laundrie", "-plaundrie_secret"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
 volumes:
   postgres_data:
   postgres_test_data:
   redis_data:
-  mysql_data:

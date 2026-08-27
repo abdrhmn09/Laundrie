@@ -242,12 +242,12 @@ export default function ProfilePage() {
                     </a>
                   )}
                   {!user?.capabilities?.is_staff && (
-                    <a href={`http://127.0.0.1:5175/register?token=${encodeURIComponent(getToken() ?? '')}`} className="card p-4 hover:shadow-md transition-shadow text-left group">
+                    <a href={`http://127.0.0.1:5175/laundries?token=${encodeURIComponent(getToken() ?? '')}`} className="card p-4 hover:shadow-md transition-shadow text-left group">
                       <div className="h-10 w-10 rounded-[--radius-md] bg-secondary/10 flex items-center justify-center text-secondary mb-3 group-hover:bg-secondary group-hover:text-white transition-colors">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                       </div>
                       <p className="font-display text-sm font-bold text-on-surface">Gabung sebagai Staff</p>
-                      <p className="text-xs text-on-surface-variant mt-1">Lamar di web-staff (5175)</p>
+                      <p className="text-xs text-on-surface-variant mt-1">Lihat daftar laundry di web-staff (5175)</p>
                     </a>
                   )}
                   {!user?.capabilities?.is_courier && (

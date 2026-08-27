@@ -22,7 +22,11 @@ export default function RegisterPage() {
 
   const [openings, setOpenings] = useState<Opening[]>([])
   const [loadingOpenings, setLoadingOpenings] = useState(false)
-  const [selectedOpening, setSelectedOpening] = useState<number | null>(null)
+  const [selectedOpening, setSelectedOpening] = useState<number | null>(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const oid = sp.get('openingId')
+    return oid ? Number(oid) : null
+  })
   const [applicationType, setApplicationType] = useState<'staff' | 'staff_courier'>('staff')
   const [ktpFile, setKtpFile] = useState<File | null>(null)
 
@@ -32,23 +36,31 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false)
   const errorRef = useRef<HTMLDivElement>(null)
 
+  const { isLoading: authLoading } = useAuth()
   useEffect(() => {
+    if (authLoading) return
     let cancelled = false
     const load = async () => {
       try {
         setLoadingOpenings(true)
+        setError(null)
         const token = getToken()
         const headers: Record<string, string> = { Accept: 'application/json' }
         if (token) headers.Authorization = `Bearer ${token}`
         const res = await fetch('/api/v1/staff-openings', { headers })
         const data = await res.json().catch(() => null)
-        if (!cancelled && res.ok) setOpenings(data?.data ?? [])
-      } catch {}
-      finally { if (!cancelled) setLoadingOpenings(false) }
+        if (!res.ok) throw new Error(data?.message ?? `Gagal memuat lowongan (${res.status})`)
+        if (!cancelled) setOpenings(data?.data ?? [])
+      } catch (e: unknown) {
+        const err = e as Error
+        if (!cancelled) setError({ message: err.message } as any)
+      } finally {
+        if (!cancelled) setLoadingOpenings(false)
+      }
     }
     void load()
     return () => { cancelled = true }
-  }, [])
+  }, [authLoading, isLoggedIn])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -132,6 +144,9 @@ export default function RegisterPage() {
           <p className="mt-2 text-sm text-on-surface-variant">
             Temukan lowongan <span className="font-bold">OPEN</span> dan kirim lamaran. Staff hanya dibuat setelah Manager <span className="font-bold">ACCEPTED</span> (PRD §10, Rule §54). Untuk Staff + Courier, pilih tipe <span className="font-bold">staff_courier</span>.
           </p>
+          <div className="mt-3">
+            <Link to="/laundries" className="btn-secondary !h-9 !px-4 text-xs">Lihat Daftar Laundry →</Link>
+          </div>
         </div>
       </FadeIn>
 

@@ -24,8 +24,74 @@ class AdminVerificationController extends \App\Http\Controllers\Controller
         if ($request->filled('owner_type')) {
             $query->where('owner_type', $request->input('owner_type'));
         }
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('document_type', 'ilike', "%{$search}%")
+                  ->orWhere('file_path', 'ilike', "%{$search}%");
+                // Cari di user terkait via owner
+                // Untuk owner_type=user, cari di users
+                $userIds = \App\Models\User::where('name', 'ilike', "%{$search}%")
+                    ->orWhere('email', 'ilike', "%{$search}%")
+                    ->pluck('id')->toArray();
+                if (!empty($userIds)) {
+                    $q->orWhere(function ($qq) use ($userIds) {
+                        $qq->where('owner_type', 'user')->whereIn('owner_id', $userIds);
+                    });
+                    // Juga untuk laundry yang dimiliki user tersebut
+                    $laundryIds = \App\Models\Laundry::whereIn('user_id', $userIds)->pluck('id')->toArray();
+                    if (!empty($laundryIds)) {
+                        $q->orWhere(function ($qq) use ($laundryIds) {
+                            $qq->where('owner_type', 'laundry')->whereIn('owner_id', $laundryIds);
+                        });
+                    }
+                    $courierIds = \App\Models\Courier::whereIn('user_id', $userIds)->pluck('id')->toArray();
+                    if (!empty($courierIds)) {
+                        $q->orWhere(function ($qq) use ($courierIds) {
+                            $qq->where('owner_type', 'courier')->whereIn('owner_id', $courierIds);
+                        });
+                    }
+                }
+            });
+        }
 
         $docs = $query->orderByDesc('created_at')->paginate($request->integer('per_page', 15));
+
+        // Enrich with owner user info for display (tampilkan dokumen yang dimiliki user)
+        $docs->getCollection()->transform(function ($doc) {
+            $ownerUser = null;
+            $ownerLabel = null;
+            try {
+                if ($doc->owner_type === 'user') {
+                    $u = \App\Models\User::find($doc->owner_id);
+                    if ($u) {
+                        $ownerUser = ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'phone' => $u->phone];
+                        $ownerLabel = $u->name . ' (' . $u->email . ')';
+                    }
+                } elseif ($doc->owner_type === 'laundry') {
+                    $l = \App\Models\Laundry::with('owner')->find($doc->owner_id);
+                    if ($l && $l->owner) {
+                        $ownerUser = ['id' => $l->owner->id, 'name' => $l->owner->name, 'email' => $l->owner->email];
+                        $ownerLabel = $l->business_name . ' — ' . $l->owner->name . ' (' . $l->owner->email . ')';
+                    }
+                } elseif ($doc->owner_type === 'courier') {
+                    $c = \App\Models\Courier::with('user', 'laundry')->find($doc->owner_id);
+                    if ($c && $c->user) {
+                        $ownerUser = ['id' => $c->user->id, 'name' => $c->user->name, 'email' => $c->user->email];
+                        $ownerLabel = $c->user->name . ' (' . $c->user->email . ') — ' . $c->courier_type . ($c->laundry ? ' @ ' . $c->laundry->business_name : '');
+                    }
+                } elseif ($doc->owner_type === 'staff_application') {
+                    $app = \App\Models\StaffApplication::with('applicant', 'laundry')->find($doc->owner_id);
+                    if ($app && $app->applicant) {
+                        $ownerUser = ['id' => $app->applicant->id, 'name' => $app->applicant->name, 'email' => $app->applicant->email];
+                        $ownerLabel = $app->applicant->name . ' (' . $app->applicant->email . ') → ' . ($app->laundry->business_name ?? 'Laundry #' . $app->laundry_id) . ' [' . $app->application_type . ']';
+                    }
+                }
+            } catch (\Exception $e) {}
+            $doc->setAttribute('owner_user', $ownerUser);
+            $doc->setAttribute('owner_label', $ownerLabel);
+            return $doc;
+        });
 
         return response()->json($docs);
     }

@@ -11,6 +11,8 @@ type Doc = {
   file_path: string
   status: string
   created_at: string
+  owner_user?: { id: number; name: string; email: string; phone?: string } | null
+  owner_label?: string | null
 }
 
 export default function VerificationQueuePage() {
@@ -19,6 +21,7 @@ export default function VerificationQueuePage() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('PENDING')
   const [ownerType, setOwnerType] = useState<string>('')
+  const [search, setSearch] = useState<string>('')
   const [actionId, setActionId] = useState<number | null>(null)
 
   const fetchDocs = async () => {
@@ -30,6 +33,7 @@ export default function VerificationQueuePage() {
       const params = new URLSearchParams()
       if (filter) params.set('status', filter)
       if (ownerType) params.set('owner_type', ownerType)
+      if (search) params.set('search', search)
       const qs = params.toString() ? `?${params.toString()}` : ''
       const res = await fetch(`/api/v1/admin/verification-documents${qs}`, { headers })
       const data = await res.json().catch(() => null)
@@ -43,7 +47,7 @@ export default function VerificationQueuePage() {
     }
   }
 
-  useEffect(() => { void fetchDocs() }, [filter, ownerType])
+  useEffect(() => { void fetchDocs() }, [filter, ownerType, search])
 
   const handleReview = async (id: number, status: 'APPROVED' | 'REJECTED') => {
     const reason = status === 'REJECTED' ? prompt('Alasan penolakan (wajib):') : null
@@ -101,6 +105,7 @@ export default function VerificationQueuePage() {
             <option value="user">User (Staff KTP)</option>
             <option value="staff_application">Staff Application</option>
           </select>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari user (nama/email) atau tipe dokumen" className="input !h-9 !py-1 text-sm flex-1 min-w-[200px]" />
           <button onClick={() => void fetchDocs()} className="btn-secondary !h-9 !px-4 text-xs">Refresh</button>
         </div>
 
@@ -117,10 +122,17 @@ export default function VerificationQueuePage() {
           <div className="mt-6 grid gap-4">
             {docs.map((doc) => (
               <div key={doc.id} className="card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
+                <div className="space-y-1">
                   <p className="font-display text-sm font-bold">#{doc.id} • {doc.owner_type} #{doc.owner_id} • {doc.document_type}</p>
+                  {doc.owner_label ? (
+                    <p className="text-xs font-medium text-on-surface">Pemilik: <span className="text-primary">{doc.owner_label}</span></p>
+                  ) : doc.owner_user ? (
+                    <p className="text-xs font-medium text-on-surface">Pemilik: {doc.owner_user.name} <span className="text-on-surface-variant">({doc.owner_user.email}{doc.owner_user.phone ? ` • ${doc.owner_user.phone}` : ''})</span></p>
+                  ) : (
+                    <p className="text-xs text-on-surface-variant">Pemilik: {doc.owner_type} #{doc.owner_id}</p>
+                  )}
                   <p className="text-xs text-on-surface-variant">Status: <span className={`badge ${doc.status === 'PENDING' ? 'badge-warning' : doc.status === 'APPROVED' ? 'badge-success' : 'badge-error'}`}>{doc.status}</span> • {new Date(doc.created_at).toLocaleString('id-ID')}</p>
-                  <p className="text-xs text-on-surface-variant mt-1">Path: <code className="text-xs bg-surface-variant px-1 rounded">{doc.file_path}</code></p>
+                  <p className="text-xs text-on-surface-variant">Path: <code className="text-xs bg-surface-variant px-1 rounded">{doc.file_path}</code></p>
                 </div>
                 {doc.status === 'PENDING' && (
                   <div className="flex gap-2">
