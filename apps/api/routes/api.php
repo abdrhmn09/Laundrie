@@ -1,9 +1,13 @@
 <?php
 
 use App\Domain\Auth\Http\Controllers\AuthController;
+use App\Domain\Auth\Http\Controllers\GoogleAuthController;
 use App\Domain\Courier\Http\Controllers\ProfileCourierController;
+use App\Domain\Laundry\Http\Controllers\LaundryCourierController;
 use App\Domain\Laundry\Http\Controllers\LaundryStaffApplicationController;
+use App\Domain\Laundry\Http\Controllers\LaundryStaffController;
 use App\Domain\Laundry\Http\Controllers\LaundryStaffOpeningController;
+use App\Domain\Laundry\Http\Controllers\LaundryVerificationController;
 use App\Domain\Laundry\Http\Controllers\ProfileLaundryController;
 use App\Domain\Laundry\Http\Controllers\StaffApplicationController;
 use App\Domain\Laundry\Http\Controllers\StaffOpeningController;
@@ -19,6 +23,11 @@ Route::prefix('v1/auth')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
         ->name('verification.verify');
+
+    // Google OAuth — untuk semua 5 web (customer, manager, staff, courier, admin)
+    Route::get('/google/redirect', [GoogleAuthController::class, 'redirect']);
+    Route::get('/google/callback', [GoogleAuthController::class, 'callback']);
+    Route::post('/google', [GoogleAuthController::class, 'handleIdToken']);
 
     // Authenticated routes
     Route::middleware('auth:sanctum')->group(function () {
@@ -66,6 +75,21 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::post('/laundry/staff-applications/{id}/accept', [LaundryStaffApplicationController::class, 'accept']);
     Route::post('/laundry/staff-applications/{id}/reject', [LaundryStaffApplicationController::class, 'reject']);
 
+    // Manager — kelola staff langsung (PRD §11) + kurir staff
+    Route::get('/laundry/staff', [LaundryStaffController::class, 'index']);
+    Route::post('/laundry/staff', [LaundryStaffController::class, 'store']);
+    Route::delete('/laundry/staff/{id}', [LaundryStaffController::class, 'destroy']);
+    Route::post('/laundry/staff/{id}/activate', [LaundryStaffController::class, 'activate']);
+
+    Route::post('/laundry/staff/{staffId}/courier', [LaundryCourierController::class, 'activateStaffCourier']);
+    Route::get('/laundry/couriers', [LaundryCourierController::class, 'index']);
+    Route::delete('/laundry/couriers/{id}', [LaundryCourierController::class, 'deactivate']);
+
+    // Manager verification untuk staff KTP (PRD §10 — diverifikasi manager, bukan admin)
+    Route::get('/laundry/verification-documents', [LaundryVerificationController::class, 'index']);
+    Route::get('/laundry/verification-documents/{id}/file', [LaundryVerificationController::class, 'file']);
+    Route::post('/laundry/verification-documents/{id}/review', [LaundryVerificationController::class, 'review']);
+
     // Verification documents — Schema §4.26
     Route::post('/verification-documents', [VerificationDocumentController::class, 'store']);
     Route::get('/verification-documents', [VerificationDocumentController::class, 'index']);
@@ -75,5 +99,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 Route::prefix('v1/admin')->middleware('auth:sanctum')->group(function () {
     Route::get('/verification-documents', [AdminVerificationController::class, 'index']);
     Route::get('/verification-documents/{id}', [AdminVerificationController::class, 'show']);
+    Route::get('/verification-documents/{id}/file', [AdminVerificationController::class, 'file']);
     Route::post('/verification-documents/{id}/review', [AdminVerificationController::class, 'review']);
 });

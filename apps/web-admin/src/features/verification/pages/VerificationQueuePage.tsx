@@ -11,8 +11,49 @@ type Doc = {
   file_path: string
   status: string
   created_at: string
-  owner_user?: { id: number; name: string; email: string; phone?: string } | null
+  owner_user?: { id: number; name: string; email: string; phone?: string; role?: string } | null
   owner_label?: string | null
+  user_type_label?: string | null
+}
+
+function DocPreview({ docId }: { docId: number }) {
+  const [url, setUrl] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isPdf, setIsPdf] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    let objectUrl: string | null = null
+    const load = async () => {
+      try {
+        const token = getToken()
+        const headers: Record<string, string> = {}
+        if (token) headers.Authorization = `Bearer ${token}`
+        const res = await fetch(`/api/v1/admin/verification-documents/${docId}/file`, { headers })
+        if (!res.ok) throw new Error('Gagal memuat file')
+        const blob = await res.blob()
+        if (cancelled) return
+        setIsPdf(blob.type.includes('pdf'))
+        objectUrl = URL.createObjectURL(blob)
+        setUrl(objectUrl)
+      } catch (e: unknown) {
+        if (!cancelled) setError((e as Error).message)
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [docId])
+
+  if (error) return <p className="text-xs text-error">Error: {error}</p>
+  if (!url) return <p className="text-xs text-on-surface-variant">Memuat pratinjau…</p>
+  return isPdf ? (
+    <iframe src={url} title={`Preview ${docId}`} className="h-64 w-full rounded border" />
+  ) : (
+    <img src={url} alt={`Dokumen ${docId}`} className="h-64 w-full object-contain rounded border bg-white" />
+  )
 }
 
 export default function VerificationQueuePage() {
@@ -121,27 +162,42 @@ export default function VerificationQueuePage() {
         ) : (
           <div className="mt-6 grid gap-4">
             {docs.map((doc) => (
-              <div key={doc.id} className="card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="font-display text-sm font-bold">#{doc.id} • {doc.owner_type} #{doc.owner_id} • {doc.document_type}</p>
-                  {doc.owner_label ? (
-                    <p className="text-xs font-medium text-on-surface">Pemilik: <span className="text-primary">{doc.owner_label}</span></p>
-                  ) : doc.owner_user ? (
-                    <p className="text-xs font-medium text-on-surface">Pemilik: {doc.owner_user.name} <span className="text-on-surface-variant">({doc.owner_user.email}{doc.owner_user.phone ? ` • ${doc.owner_user.phone}` : ''})</span></p>
-                  ) : (
-                    <p className="text-xs text-on-surface-variant">Pemilik: {doc.owner_type} #{doc.owner_id}</p>
-                  )}
-                  <p className="text-xs text-on-surface-variant">Status: <span className={`badge ${doc.status === 'PENDING' ? 'badge-warning' : doc.status === 'APPROVED' ? 'badge-success' : 'badge-error'}`}>{doc.status}</span> • {new Date(doc.created_at).toLocaleString('id-ID')}</p>
-                  <p className="text-xs text-on-surface-variant">Path: <code className="text-xs bg-surface-variant px-1 rounded">{doc.file_path}</code></p>
-                </div>
-                {doc.status === 'PENDING' && (
-                  <div className="flex gap-2">
-                    <button onClick={() => handleReview(doc.id, 'APPROVED')} disabled={actionId === doc.id} className="btn-primary !h-9 !px-4 text-xs">
-                      {actionId === doc.id ? 'Memproses…' : 'Setujui'}
-                    </button>
-                    <button onClick={() => handleReview(doc.id, 'REJECTED')} disabled={actionId === doc.id} className="btn-secondary !h-9 !px-3 text-xs text-error">Tolak</button>
+              <div key={doc.id} className="card p-5 flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="space-y-1 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-display text-sm font-bold">#{doc.id} • {doc.document_type}</span>
+                      <span className={`badge ${doc.owner_type === 'laundry' ? 'badge-active' : doc.owner_type === 'courier' ? 'badge-success' : doc.owner_type === 'user' ? 'badge-neutral' : 'badge-warning'} text-xs`}>
+                        {(doc as any).user_type_label ?? doc.owner_type}
+                      </span>
+                      <span className={`badge ${doc.status === 'PENDING' ? 'badge-warning' : doc.status === 'APPROVED' ? 'badge-success' : 'badge-error'}`}>{doc.status}</span>
+                    </div>
+                    {doc.owner_label ? (
+                      <p className="text-xs font-medium text-on-surface">Pemilik: <span className="text-primary">{doc.owner_label}</span></p>
+                    ) : doc.owner_user ? (
+                      <p className="text-xs font-medium text-on-surface">Pemilik: {doc.owner_user.name} <span className="text-on-surface-variant">({doc.owner_user.email}{doc.owner_user.phone ? ` • ${doc.owner_user.phone}` : ''})</span></p>
+                    ) : (
+                      <p className="text-xs text-on-surface-variant">Pemilik: {doc.owner_type} #{doc.owner_id}</p>
+                    )}
+                    <p className="text-xs text-on-surface-variant">{new Date(doc.created_at).toLocaleString('id-ID')} • Path: <code className="text-xs bg-surface-variant px-1 rounded">{doc.file_path}</code></p>
+                    {doc.owner_user && (
+                      <p className="text-xs text-on-surface-variant">User ID #{doc.owner_user.id} • Role: {(doc.owner_user as any).role ?? '-'}</p>
+                    )}
                   </div>
-                )}
+                  <div className="mt-3 rounded-lg border bg-white p-2">
+                    <p className="text-xs font-semibold text-on-surface-variant mb-2">Pratinjau Berkas — {doc.document_type} (jelas untuk admin):</p>
+                    <DocPreview docId={doc.id} />
+                    <a href={`/api/v1/admin/verification-documents/${doc.id}/file`} target="_blank" rel="noopener" onClick={(e) => { e.preventDefault(); const token = getToken(); if (!token) return; fetch(`/api/v1/admin/verification-documents/${doc.id}/file`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.blob()).then(b => { const u = URL.createObjectURL(b); window.open(u, '_blank'); setTimeout(() => URL.revokeObjectURL(u), 60000); }); }} className="mt-2 inline-block text-xs text-primary underline">Buka file asli di tab baru (butuh auth)</a>
+                  </div>
+                  {doc.status === 'PENDING' && (
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => handleReview(doc.id, 'APPROVED')} disabled={actionId === doc.id} className="btn-primary !h-9 !px-4 text-xs">
+                        {actionId === doc.id ? 'Memproses…' : 'Setujui'}
+                      </button>
+                      <button onClick={() => handleReview(doc.id, 'REJECTED')} disabled={actionId === doc.id} className="btn-secondary !h-9 !px-3 text-xs text-error">Tolak</button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
