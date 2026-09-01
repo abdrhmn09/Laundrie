@@ -69,7 +69,10 @@ export default function DashboardPage() {
           <div className="card p-5">
             <p className="text-xs font-bold tracking-widest text-on-surface-variant">AKSES</p>
             <p className="text-sm mt-1">Kelola Staff, Layanan & Harga, Settlement</p>
-            <Link to="#" className="text-xs text-primary font-semibold mt-2 inline-block">Lihat Staff →</Link>
+            <div className="flex gap-2 mt-2">
+              <Link to="/staff/applications" className="text-xs text-primary font-semibold">Lihat Staff →</Link>
+              <Link to="/services" className="text-xs text-primary font-semibold">Kelola Layanan →</Link>
+            </div>
           </div>
         </div>
 

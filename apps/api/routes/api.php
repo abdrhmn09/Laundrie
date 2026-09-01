@@ -12,6 +12,7 @@ use App\Domain\Laundry\Http\Controllers\ProfileLaundryController;
 use App\Domain\Laundry\Http\Controllers\StaffApplicationController;
 use App\Domain\Laundry\Http\Controllers\StaffOpeningController;
 use App\Domain\Admin\Http\Controllers\AdminVerificationController;
+use App\Domain\Pricing\Http\Controllers\ServiceController;
 use App\Domain\Verification\Http\Controllers\VerificationDocumentController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,10 +45,14 @@ Route::prefix('v1/auth')->group(function () {
     });
 });
 
-// ── Public staff openings (tidak perlu auth untuk lihat daftar lowongan) ──
+// ── Public catalog, laundry discovery & staff openings ──
 Route::prefix('v1')->group(function () {
     Route::get('/staff-openings', [StaffOpeningController::class, 'index']);
     Route::get('/staff-openings/{id}', [StaffOpeningController::class, 'show']);
+    Route::get('/services', [ServiceController::class, 'index']);
+    Route::get('/services/{id}', [ServiceController::class, 'show']);
+    Route::get('/laundries', [\App\Domain\Laundry\Http\Controllers\LaundryDiscoveryController::class, 'index']);
+    Route::get('/laundries/{id}', [\App\Domain\Laundry\Http\Controllers\LaundryDiscoveryController::class, 'show']);
 });
 
 // ── Profile as Capability Hub (PRD §7, Architecture §9.2.x) ──
@@ -89,6 +94,20 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/laundry/verification-documents', [LaundryVerificationController::class, 'index']);
     Route::get('/laundry/verification-documents/{id}/file', [LaundryVerificationController::class, 'file']);
     Route::post('/laundry/verification-documents/{id}/review', [LaundryVerificationController::class, 'review']);
+
+    // Catalog & Pricing — Manager only (Schema §4.8-4.9, Design §16)
+    Route::post('/laundry/services', [ServiceController::class, 'store']);
+    Route::patch('/laundry/services/{id}', [ServiceController::class, 'update']);
+    Route::delete('/laundry/services/{id}', [ServiceController::class, 'destroy']);
+    Route::post('/laundry/services/{id}/prices', [ServiceController::class, 'updatePrice']);
+    Route::get('/laundry/services/{id}/prices', [ServiceController::class, 'priceHistory']);
+
+    // Addresses — customer only (Schema §4.10)
+    Route::get('/addresses', [\App\Domain\Customer\Http\Controllers\AddressController::class, 'index']);
+    Route::post('/addresses', [\App\Domain\Customer\Http\Controllers\AddressController::class, 'store']);
+    Route::patch('/addresses/{id}', [\App\Domain\Customer\Http\Controllers\AddressController::class, 'update']);
+    Route::delete('/addresses/{id}', [\App\Domain\Customer\Http\Controllers\AddressController::class, 'destroy']);
+    Route::post('/addresses/{id}/default', [\App\Domain\Customer\Http\Controllers\AddressController::class, 'setDefault']);
 
     // Verification documents — Schema §4.26
     Route::post('/verification-documents', [VerificationDocumentController::class, 'store']);
