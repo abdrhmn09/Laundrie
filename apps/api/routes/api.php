@@ -12,6 +12,7 @@ use App\Domain\Laundry\Http\Controllers\ProfileLaundryController;
 use App\Domain\Laundry\Http\Controllers\StaffApplicationController;
 use App\Domain\Laundry\Http\Controllers\StaffOpeningController;
 use App\Domain\Admin\Http\Controllers\AdminVerificationController;
+use App\Domain\Order\Http\Controllers\OrderController;
 use App\Domain\Pricing\Http\Controllers\ServiceController;
 use App\Domain\Verification\Http\Controllers\VerificationDocumentController;
 use Illuminate\Support\Facades\Route;
@@ -108,6 +109,13 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::patch('/addresses/{id}', [\App\Domain\Customer\Http\Controllers\AddressController::class, 'update']);
     Route::delete('/addresses/{id}', [\App\Domain\Customer\Http\Controllers\AddressController::class, 'destroy']);
     Route::post('/addresses/{id}/default', [\App\Domain\Customer\Http\Controllers\AddressController::class, 'setDefault']);
+
+    // Orders — PRD §14, Architecture §8
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders/{id}/confirm', [OrderController::class, 'confirm']);
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 
     // Verification documents — Schema §4.26
     Route::post('/verification-documents', [VerificationDocumentController::class, 'store']);

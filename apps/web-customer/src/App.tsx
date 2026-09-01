@@ -18,6 +18,7 @@ import CourierOnboardingPage from './features/courier/pages/CourierOnboardingPag
 import CatalogPage from './features/catalog/pages/CatalogPage'
 import AddressesPage from './features/address/pages/AddressesPage'
 import LaundryDiscoveryPage from './features/laundry-discovery/pages/LaundryDiscoveryPage'
+import CreateOrderPage from './features/order/pages/CreateOrderPage'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
 
 export default function App() {
@@ -35,7 +36,6 @@ export default function App() {
 
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/laundries" element={<LaundryDiscoveryPage />} />
-          <Route path="/addresses" element={<AddressesPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
@@ -46,6 +46,7 @@ export default function App() {
             <Route path="/profile/staff/discovery" element={<StaffDiscoveryPage />} />
             <Route path="/profile/courier/onboarding" element={<CourierOnboardingPage />} />
             <Route path="/addresses" element={<AddressesPage />} />
+            <Route path="/orders/new" element={<CreateOrderPage />} />
           </Route>
         </Routes>
       </AuthProvider>
