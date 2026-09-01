@@ -287,6 +287,8 @@ Review
 - `Lupa Password`
 - `Tampilkan Password`
 
+> **Catatan per-web (update 24 Agu 2026):** `web-customer` `5173` hanya untuk **Pelanggan** (tanpa pilihan role). `web-manager` `5174` khusus **Mitra Laundry** (form + dokumen KTP wajib, foto lokasi wajib, NIB opsional tetap ditampilkan). `web-courier` `5176` khusus **Kurir** (freelance/laundry_staff + KTP, SIM, STNK wajib). `web-staff` `5175` khusus **Staff** (pilih lowongan OPEN + KTP wajib). Profil customer hanya mengarahkan ke `http://127.0.0.1:5174/register?token=` / `5175` / `5176` dengan `?token=` forwarding (PRD §7).
+
 ---
 
 ## 6.2 Beranda
@@ -1776,6 +1778,7 @@ Staff activation/deactivation
 17. Semua permission mutation tetap harus divalidasi server.
 18. Data rekomendasi kebutuhan Staff harus memiliki source endpoint; jangan hardcode atau menebak.
 19. Data yang belum tersedia API tidak boleh diarang.
+20. Pendaftaran per peran wajib di web masing-masing (5173 customer, 5174 laundry, 5175 staff, 5176 courier) dengan dokumen wajib (laundry: KTP + foto lokasi wajib, NIB opsional tetap tampil; courier: KTP+SIM+STNK wajib; staff: KTP wajib), profil hanya redirect dengan `?token=`.
 
 
 ---

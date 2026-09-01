@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Brand } from '../../../shared/components/Brand'
 import { Field } from '../../../shared/components/Field'
-import { authApi, type ApiError } from '../api/authApi'
+import { authApi, getToken, type ApiError } from '../api/authApi'
 
 export default function ProfilePage() {
   const { user, logout, setUser } = useAuth()
@@ -208,37 +208,56 @@ export default function ProfilePage() {
               ) : null}
             </div>
 
-            {/* Onboarding CTA — only for users without those capabilities */}
+            {/* Quick open role apps — PRD §7.2 after capability acquired */}
+            {(user?.capabilities?.is_manager || user?.capabilities?.is_staff || user?.capabilities?.is_courier || user?.capabilities?.is_admin) && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {user?.capabilities?.is_manager && (
+                  <a href={`http://127.0.0.1:5174?token=${encodeURIComponent(getToken() ?? '')}`} className="btn-primary !h-9 !px-4 text-xs">Buka web-manager →</a>
+                )}
+                {user?.capabilities?.is_staff && (
+                  <a href={`http://127.0.0.1:5175?token=${encodeURIComponent(getToken() ?? '')}`} className="btn-secondary !h-9 !px-4 text-xs">Buka web-staff →</a>
+                )}
+                {user?.capabilities?.is_courier && (
+                  <a href={`http://127.0.0.1:5176?token=${encodeURIComponent(getToken() ?? '')}`} className="btn-secondary !h-9 !px-4 text-xs">Buka web-courier →</a>
+                )}
+                {user?.capabilities?.is_admin && (
+                  <a href={`http://127.0.0.1:5177?token=${encodeURIComponent(getToken() ?? '')}`} className="btn-secondary !h-9 !px-4 text-xs">Buka web-admin →</a>
+                )}
+              </div>
+            )}
+
+            {/* Onboarding CTA — hanya untuk user tanpa capability, arahkan ke web khusus peran (per permintaan: pendaftaran di tiap web berbeda) */}
             {(!user?.capabilities?.is_manager || !user?.capabilities?.is_staff || !user?.capabilities?.is_courier) && (
               <div className="space-y-3 pt-2">
                 <h3 className="font-display text-sm font-bold text-on-surface">Mulai Berperan di Laundrie</h3>
+                <p className="text-xs text-on-surface-variant">Pilih peran, Anda akan diarahkan ke web khusus untuk melengkapi dokumen verifikasi (PRD §8, §12).</p>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {!user?.capabilities?.is_manager && (
-                    <Link to="/profile/laundry/create" className="card p-4 hover:shadow-md transition-shadow text-left group">
+                    <a href={`http://127.0.0.1:5174/register?token=${encodeURIComponent(getToken() ?? '')}`} className="card p-4 hover:shadow-md transition-shadow text-left group">
                       <div className="h-10 w-10 rounded-[--radius-md] bg-primary/10 flex items-center justify-center text-primary mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                       </div>
                       <p className="font-display text-sm font-bold text-on-surface">Buat Laundry</p>
-                      <p className="text-xs text-on-surface-variant mt-1">Buka dan kelola laundry Anda</p>
-                    </Link>
+                      <p className="text-xs text-on-surface-variant mt-1">Daftar di web-manager (5174) + upload KTP/NIB/foto</p>
+                    </a>
                   )}
                   {!user?.capabilities?.is_staff && (
-                    <Link to="/profile/staff/discovery" className="card p-4 hover:shadow-md transition-shadow text-left group">
+                    <a href={`http://127.0.0.1:5175/laundries?token=${encodeURIComponent(getToken() ?? '')}`} className="card p-4 hover:shadow-md transition-shadow text-left group">
                       <div className="h-10 w-10 rounded-[--radius-md] bg-secondary/10 flex items-center justify-center text-secondary mb-3 group-hover:bg-secondary group-hover:text-white transition-colors">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                       </div>
                       <p className="font-display text-sm font-bold text-on-surface">Gabung sebagai Staff</p>
-                      <p className="text-xs text-on-surface-variant mt-1">Cari lowongan laundry</p>
-                    </Link>
+                      <p className="text-xs text-on-surface-variant mt-1">Lihat daftar laundry di web-staff (5175)</p>
+                    </a>
                   )}
                   {!user?.capabilities?.is_courier && (
-                    <Link to="/profile/courier/onboarding" className="card p-4 hover:shadow-md transition-shadow text-left group">
+                    <a href={`http://127.0.0.1:5176/register?token=${encodeURIComponent(getToken() ?? '')}`} className="card p-4 hover:shadow-md transition-shadow text-left group">
                       <div className="h-10 w-10 rounded-[--radius-md] bg-tertiary/10 flex items-center justify-center text-tertiary mb-3 group-hover:bg-tertiary group-hover:text-white transition-colors">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><circle cx="12" cy="12" r="10" /><polyline points="16 12 12 8 8 12" /><line x1="12" y1="16" x2="12" y2="8" /></svg>
                       </div>
                       <p className="font-display text-sm font-bold text-on-surface">Daftar sebagai Courier</p>
-                      <p className="text-xs text-on-surface-variant mt-1">Freelance atau Staff Courier</p>
-                    </Link>
+                      <p className="text-xs text-on-surface-variant mt-1">Daftar di web-courier (5176) + upload KTP/SIM/STNK</p>
+                    </a>
                   )}
                 </div>
               </div>

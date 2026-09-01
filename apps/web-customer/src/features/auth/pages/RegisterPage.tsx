@@ -6,33 +6,17 @@ import { FadeIn } from '../../../shared/components/motion'
 import { PasswordStrengthMeter } from '../../../shared/components/PasswordStrengthMeter'
 import { useAuth } from '../context/AuthContext'
 import { getFieldError, type ApiError } from '../api/authApi'
-
-type SelectedRoleCategory = 'customer' | 'courier' | 'outlet' | 'admin'
+import GoogleAuthButton from '../../../shared/components/GoogleAuthButton'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
   const { register } = useAuth()
 
-  const [roleCategory, setRoleCategory] = useState<SelectedRoleCategory>('customer')
-  
-  // Basic Fields
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
-
-  // Courier Specific Fields
-  const [vehicleType, setVehicleType] = useState('Motorcycle')
-  const [licensePlate, setLicensePlate] = useState('')
-  const [simNumber, setSimNumber] = useState('')
-
-  // Outlet / Manager Specific Fields
-  const [outletName, setOutletName] = useState('')
-  const [outletAddress, setOutletAddress] = useState('')
-
-  // Admin Specific Fields
-  const [invitationCode, setInvitationCode] = useState('')
 
   const [showPassword, setShowPassword] = useState(false)
   const [agreed, setAgreed] = useState(false)
@@ -46,13 +30,6 @@ export default function RegisterPage() {
   const phoneError = getFieldError(error, 'phone')
   const passwordError = getFieldError(error, 'password')
   const confirmationError = getFieldError(error, 'password_confirmation')
-
-  // Role specific backend error mapping
-  const vehicleTypeError = getFieldError(error, 'vehicle_type')
-  const licensePlateError = getFieldError(error, 'license_plate')
-  const outletNameError = getFieldError(error, 'outlet_name')
-  const outletAddressError = getFieldError(error, 'outlet_address')
-  const invitationCodeError = getFieldError(error, 'invitation_code')
 
   const emailFormatError = touched.email && email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     ? 'Format email tidak valid.'
@@ -79,30 +56,16 @@ export default function RegisterPage() {
     setSubmitting(true)
     setError(null)
 
-    let mappedRole = 'customer'
-    if (roleCategory === 'courier') mappedRole = 'courier'
-    else if (roleCategory === 'outlet') mappedRole = 'manager'
-    else if (roleCategory === 'admin') mappedRole = 'operations_admin'
-
     try {
-      const res = await register({
+      // web-customer hanya untuk Pelanggan (customer) — peran lain daftar via web masing-masing (PRD §7)
+      await register({
         name,
         email,
         phone,
         password,
         password_confirmation: passwordConfirmation,
-        role: mappedRole,
-        vehicle_type: roleCategory === 'courier' ? vehicleType : undefined,
-        license_plate: roleCategory === 'courier' ? licensePlate : undefined,
-        sim_number: roleCategory === 'courier' ? simNumber : undefined,
-        outlet_name: roleCategory === 'outlet' ? outletName : undefined,
-        outlet_address: roleCategory === 'outlet' ? outletAddress : undefined,
-        invitation_code: roleCategory === 'admin' ? invitationCode : undefined,
+        role: 'customer',
       })
-
-      if (res.user.status === 'pending_verification') {
-        alert(res.message || 'Pendaftaran berhasil. Akun Anda sedang dalam proses peninjauan oleh Tim Operasional Laundrie.')
-      }
       navigate('/verify-email')
     } catch (err) {
       setError(err as ApiError)
@@ -117,68 +80,11 @@ export default function RegisterPage() {
       <FadeIn delay={200}>
         <div className="mb-6">
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-on-surface">
-            Pendaftaran Akun Laundrie
+            Daftar Akun Pelanggan
           </h1>
           <p className="mt-2 text-sm text-on-surface-variant">
-            Pilih jenis akun sesuai dengan peran Anda di ekosistem platform Laundrie.
+            Buat akun untuk memesan laundry jemput-antar. Untuk menjadi Mitra Laundry atau Kurir, daftar via Profil → pilih peran → Anda akan diarahkan ke web khusus peran tersebut untuk melengkapi dokumen verifikasi.
           </p>
-        </div>
-      </FadeIn>
-
-      <FadeIn delay={250}>
-        {/* Role Selector Tabs */}
-        <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <button
-            type="button"
-            onClick={() => setRoleCategory('customer')}
-            className={`flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${
-              roleCategory === 'customer'
-                ? 'border-primary bg-primary/5 text-primary shadow-sm font-bold'
-                : 'border-outline-variant/60 bg-surface hover:bg-surface-variant/50 text-on-surface-variant'
-            }`}
-          >
-            <span className="text-xl">🛍️</span>
-            <span className="mt-1 text-xs">Pelanggan</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRoleCategory('courier')}
-            className={`flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${
-              roleCategory === 'courier'
-                ? 'border-primary bg-primary/5 text-primary shadow-sm font-bold'
-                : 'border-outline-variant/60 bg-surface hover:bg-surface-variant/50 text-on-surface-variant'
-            }`}
-          >
-            <span className="text-xl">🚚</span>
-            <span className="mt-1 text-xs">Mitra Kurir</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRoleCategory('outlet')}
-            className={`flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${
-              roleCategory === 'outlet'
-                ? 'border-primary bg-primary/5 text-primary shadow-sm font-bold'
-                : 'border-outline-variant/60 bg-surface hover:bg-surface-variant/50 text-on-surface-variant'
-            }`}
-          >
-            <span className="text-xl">🧺</span>
-            <span className="mt-1 text-xs">Mitra Laundry</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRoleCategory('admin')}
-            className={`flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${
-              roleCategory === 'admin'
-                ? 'border-primary bg-primary/5 text-primary shadow-sm font-bold'
-                : 'border-outline-variant/60 bg-surface hover:bg-surface-variant/50 text-on-surface-variant'
-            }`}
-          >
-            <span className="text-xl">🛡️</span>
-            <span className="mt-1 text-xs">Internal Admin</span>
-          </button>
         </div>
       </FadeIn>
 
@@ -195,20 +101,8 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Role Status Note */}
-          <div className="rounded-lg bg-surface-bright p-3.5 border border-[#e1eef3] text-xs leading-relaxed text-on-surface-variant">
-            {roleCategory === 'customer' && (
-              <p>💡 <strong>Akun Pelanggan:</strong> Bebas pesan jasa cuci jemput-antar. Setelah mendaftar, email verifikasi akan dikirimkan.</p>
-            )}
-            {roleCategory === 'courier' && (
-              <p>🚚 <strong>Mitra Kurir:</strong> Memerlukan verifikasi data kendaraan & SIM oleh Tim Operasional Laundrie sebelum akun diaktifkan.</p>
-            )}
-            {roleCategory === 'outlet' && (
-              <p>🧺 <strong>Mitra Laundry:</strong> Memerlukan verifikasi lokasi & nama outlet laundry oleh Admin sebelum dapat menerima pesanan.</p>
-            )}
-            {roleCategory === 'admin' && (
-              <p>🛡️ <strong>Admin Internal:</strong> Memerlukan Kode Undangan Rahasia (Invitation Code) resmi dari SuperAdmin Laundrie.</p>
-            )}
+          <div className="rounded-lg bg-primary/5 p-3.5 border border-primary/20 text-xs leading-relaxed text-on-surface-variant">
+            <p>💡 <strong>Akun Pelanggan:</strong> Setelah mendaftar, Anda dapat menambah peran lain (Laundry/Courier) kapan saja via <span className="font-bold">Profil → Buat Laundry / Gabung Staff / Daftar Courier</span> yang mengarah ke web khusus (5174 untuk Manager, 5176 untuk Courier) untuk pengisian dokumen.</p>
           </div>
 
           <Field id="name" label="Nama Lengkap" error={nameError}>
@@ -251,97 +145,6 @@ export default function RegisterPage() {
               onChange={(e) => setPhone(e.target.value)}
             />
           </Field>
-
-          {/* Conditional Role-Based Form Inputs */}
-          {roleCategory === 'courier' && (
-            <div className="space-y-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
-              <h4 className="font-display text-xs font-bold text-primary uppercase tracking-wider">Informasi Kendaraan Kurir</h4>
-              
-              <Field id="vehicle_type" label="Jenis Kendaraan" error={vehicleTypeError}>
-                <select
-                  id="vehicle_type"
-                  className="input"
-                  value={vehicleType}
-                  onChange={(e) => setVehicleType(e.target.value)}
-                >
-                  <option value="Motorcycle">Sepeda Motor</option>
-                  <option value="Car">Mobil Box / Pick Up</option>
-                  <option value="Bicycle">Sepeda</option>
-                </select>
-              </Field>
-
-              <Field id="license_plate" label="Nomor Polisi (Plat Nomor)" error={licensePlateError}>
-                <input
-                  id="license_plate"
-                  type="text"
-                  required
-                  className="input uppercase"
-                  placeholder="Contoh: B 1234 ABC"
-                  value={licensePlate}
-                  onChange={(e) => setLicensePlate(e.target.value)}
-                />
-              </Field>
-
-              <Field id="sim_number" label="Nomor SIM C/A (Opsional)">
-                <input
-                  id="sim_number"
-                  type="text"
-                  className="input"
-                  placeholder="Nomor SIM Anda"
-                  value={simNumber}
-                  onChange={(e) => setSimNumber(e.target.value)}
-                />
-              </Field>
-            </div>
-          )}
-
-          {roleCategory === 'outlet' && (
-            <div className="space-y-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
-              <h4 className="font-display text-xs font-bold text-primary uppercase tracking-wider">Informasi Outlet Laundry</h4>
-
-              <Field id="outlet_name" label="Nama Outlet / Usaha Laundry" error={outletNameError}>
-                <input
-                  id="outlet_name"
-                  type="text"
-                  required
-                  className="input"
-                  placeholder="Contoh: CleanExpress Laundry Cabang 1"
-                  value={outletName}
-                  onChange={(e) => setOutletName(e.target.value)}
-                />
-              </Field>
-
-              <Field id="outlet_address" label="Alamat Lengkap Outlet Laundry" error={outletAddressError}>
-                <textarea
-                  id="outlet_address"
-                  required
-                  rows={2}
-                  className="input"
-                  placeholder="Jl. Merdeka No. 45, Bandung"
-                  value={outletAddress}
-                  onChange={(e) => setOutletAddress(e.target.value)}
-                />
-              </Field>
-            </div>
-          )}
-
-          {roleCategory === 'admin' && (
-            <div className="space-y-4 rounded-xl border border-rose-200 bg-rose-50/50 p-4">
-              <h4 className="font-display text-xs font-bold text-rose-700 uppercase tracking-wider">Otentikasi Internal Admin</h4>
-
-              <Field id="invitation_code" label="Kode Undangan Internal Admin" error={invitationCodeError} hint="Masukkan kode rahasia dari SuperAdmin.">
-                <input
-                  id="invitation_code"
-                  type="password"
-                  required
-                  className="input font-mono"
-                  placeholder="LAUNDRIE-ADMIN-2026"
-                  value={invitationCode}
-                  onChange={(e) => setInvitationCode(e.target.value)}
-                />
-              </Field>
-            </div>
-          )}
 
           <Field id="password" label="Password" error={passwordError ?? passwordLengthError} hint="Minimal 8 karakter.">
             <div className="input-password-wrap">
@@ -401,12 +204,31 @@ export default function RegisterPage() {
             {submitting ? 'Memproses Pendaftaran...' : 'Daftar Sekarang'}
           </button>
 
+          <div className="relative py-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#e1eef3]" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-3 text-xs text-on-surface-variant">atau</span>
+            </div>
+          </div>
+
+          <GoogleAuthButton mode="register" />
+
           <p className="text-center text-sm text-on-surface-variant">
             Sudah punya akun?{' '}
             <Link to="/login" className="font-semibold text-primary hover:underline">
               Masuk di sini
             </Link>
           </p>
+
+          <div className="border-t border-[#e1eef3] pt-4 text-center">
+            <p className="text-xs text-on-surface-variant">Ingin daftar sebagai Mitra?</p>
+            <div className="mt-2 flex flex-wrap justify-center gap-2 text-xs">
+              <a href="http://127.0.0.1:5174/register" className="badge-neutral hover:bg-primary/10">🧺 Mitra Laundry (5174)</a>
+              <a href="http://127.0.0.1:5176/register" className="badge-neutral hover:bg-primary/10">🚚 Mitra Kurir (5176)</a>
+            </div>
+          </div>
         </form>
       </FadeIn>
     </AuthLayout>

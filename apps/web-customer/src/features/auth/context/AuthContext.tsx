@@ -50,6 +50,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const bootstrap = async () => {
+      // SSO: jika datang dari web lain via ?token=, simpan token (PRD §5 One Account)
+      const params = new URLSearchParams(window.location.search)
+      const urlToken = params.get('token')
+      if (urlToken) {
+        saveToken(urlToken)
+        setToken(urlToken)
+        // bersihkan URL tanpa reload
+        params.delete('token')
+        const newQs = params.toString()
+        const newUrl = window.location.pathname + (newQs ? `?${newQs}` : '') + window.location.hash
+        window.history.replaceState({}, '', newUrl)
+      }
       await refreshUser()
       setIsLoading(false)
     }

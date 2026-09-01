@@ -1,18 +1,21 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
+import { getToken } from '../../auth/api/authApi'
+import { laundryApi } from '../api/laundryApi'
 import { Brand } from '../../../shared/components/Brand'
 import { Field } from '../../../shared/components/Field'
 import { FadeIn } from '../../../shared/components/motion'
 
 export default function CreateLaundryPage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, setUser } = useAuth()
   const [businessName, setBusinessName] = useState('')
   const [addressLine, setAddressLine] = useState('')
   const [contactPhone, setContactPhone] = useState(user?.phone ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   // If already manager, redirect to profile
   if (user?.capabilities?.is_manager) {
@@ -39,17 +42,26 @@ export default function CreateLaundryPage() {
     e.preventDefault()
     setSubmitting(true)
     setError(null)
-    // TODO: POST /api/v1/profile/laundry — per PRD §8, Schema §4.7
-    // For now, mock success after validation (backend will be implemented in Laundry domain)
+    setSuccess(null)
     try {
-      await new Promise((r) => setTimeout(r, 800))
-      // Simulate API call — in real implementation: await fetch('/api/v1/profile/laundry', {method:'POST', body: JSON.stringify({business_name: businessName, address_line: addressLine, contact_phone: contactPhone})})
       if (!businessName || !addressLine || !contactPhone) throw new Error('Lengkapi semua field wajib.')
-      // Mock success: navigate back to profile where manager capability will appear after refresh
-      navigate('/profile')
+      const res = await laundryApi.create({
+        business_name: businessName,
+        address_line: addressLine,
+        contact_phone: contactPhone,
+      })
+      setUser(res.user)
+      setSuccess(res.message)
+      // PRD §8: otomatis Manager → redirect ke web-manager per permintaan user
+      const token = getToken()
+      const qs = token ? `?token=${encodeURIComponent(token)}` : ''
+      setTimeout(() => {
+        window.location.href = `http://127.0.0.1:5174${qs}`
+      }, 900)
     } catch (err: unknown) {
-      const e = err as Error
-      setError(e.message)
+      const e = err as { message?: string; errors?: Record<string, string[]> }
+      const msg = e.errors ? Object.values(e.errors).flat().join(', ') : e.message
+      setError(msg ?? 'Gagal membuat laundry.')
     } finally {
       setSubmitting(false)
     }
@@ -75,6 +87,7 @@ export default function CreateLaundryPage() {
         <FadeIn delay={200}>
           <form onSubmit={handleSubmit} className="card-lifted p-6 space-y-5" noValidate>
             {error && <div className="rounded-[--radius-md] bg-error-container p-3 text-sm text-on-error-container">{error}</div>}
+            {success && <div className="rounded-[--radius-md] bg-status-success-container p-3 text-sm text-status-success">{success}<br /><span className="text-xs">Mengalihkan ke Dashboard Manager…</span></div>}
             <Field id="business_name" label="Nama Bisnis Laundry">
               <input id="business_name" className="input" placeholder="Laundrie Express Peudada" value={businessName} onChange={(e) => setBusinessName(e.target.value)} required />
             </Field>

@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import { Brand } from '../../../shared/components/Brand'
 import { FadeIn } from '../../../shared/components/motion'
 import { useAuth } from '../../auth/context/AuthContext'
+import { getToken } from '../../auth/api/authApi'
+import { courierApi } from '../api/courierApi'
 
 export default function CourierOnboardingPage() {
-  const { user } = useAuth()
+  const { user, setUser } = useAuth()
   const [type, setType] = useState<'freelance' | 'laundry_staff'>('freelance')
   const [vehicle, setVehicle] = useState('motor')
   const [submitting, setSubmitting] = useState(false)
@@ -16,10 +18,24 @@ export default function CourierOnboardingPage() {
   const handleSubmit = async () => {
     setSubmitting(true)
     setMsg(null)
-    // TODO: POST /api/v1/profile/courier/freelance or /staff per PRD §12, Architecture §9.2.x
-    await new Promise((r) => setTimeout(r, 700))
-    setMsg(type === 'freelance' ? 'Pendaftaran freelance courier berhasil (mock). Menunggu verifikasi PENDING → VERIFIED.' : 'Lamaran Staff+Courier dikirim. Menunggu Manager menerima lamaran Anda.')
-    setSubmitting(false)
+    try {
+      if (type === 'freelance') {
+        const res = await courierApi.createFreelance({ vehicle_type: vehicle })
+        if (res.user) setUser(res.user)
+        setMsg(res.message + ' Mengalihkan ke web-courier…')
+        const token = getToken()
+        const qs = token ? `?token=${encodeURIComponent(token)}` : ''
+        setTimeout(() => { window.location.href = `http://127.0.0.1:5176${qs}` }, 900)
+      } else {
+        // laundry_staff via staff application flow — redirect to discovery
+        setMsg('Untuk Staff Courier, silakan lamar via Gabung sebagai Staff → pilih Staff + Courier. Setelah ACCEPTED, profil courier laundry_staff akan dibuat.')
+      }
+    } catch (e: unknown) {
+      const err = e as { message?: string; errors?: Record<string, string[]> }
+      setMsg(err.errors ? Object.values(err.errors).flat().join(', ') : err.message ?? 'Gagal mendaftar courier.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
