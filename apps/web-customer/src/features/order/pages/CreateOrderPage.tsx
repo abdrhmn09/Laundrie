@@ -31,8 +31,16 @@ export default function CreateOrderPage() {
   const [quantity, setQuantity] = useState('1')
   const [pickupAddress, setPickupAddress] = useState<number | ''>('')
   const [deliveryAddress, setDeliveryAddress] = useState<number | ''>('')
-  const [pickupStart, setPickupStart] = useState('')
-  const [pickupEnd, setPickupEnd] = useState('')
+  const [pickupStart, setPickupStart] = useState(() => {
+    const d = new Date(Date.now() + 2 * 3600 * 1000)
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+    return d.toISOString().slice(0, 16)
+  })
+  const [pickupEnd, setPickupEnd] = useState(() => {
+    const d = new Date(Date.now() + 4 * 3600 * 1000)
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+    return d.toISOString().slice(0, 16)
+  })
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -91,6 +99,14 @@ export default function CreateOrderPage() {
   const qtyVal = parseFloat(quantity) || 0
   const estimatedSubtotal = unitPrice * qtyVal
 
+  const safeIsoDate = (val: string, fallbackOffsetHours: number) => {
+    if (val) {
+      const d = new Date(val)
+      if (!isNaN(d.getTime())) return d.toISOString()
+    }
+    return new Date(Date.now() + fallbackOffsetHours * 3600 * 1000).toISOString()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedLaundry || !selectedService) {
@@ -119,10 +135,6 @@ export default function CreateOrderPage() {
       const pAddrId = pickupMethod === 'COURIER' ? Number(pickupAddress) : defaultAddrId
       const dAddrId = deliveryMethod === 'COURIER' ? Number(deliveryAddress) : defaultAddrId
 
-      const now = new Date()
-      const defaultStart = new Date(now.getTime() + 3600 * 1000).toISOString()
-      const defaultEnd = new Date(now.getTime() + 7200 * 1000).toISOString()
-
       const res = await fetch('/api/v1/orders', {
         method: 'POST',
         headers,
@@ -130,8 +142,8 @@ export default function CreateOrderPage() {
           laundry_id: Number(selectedLaundry),
           pickup_address_id: pAddrId,
           delivery_address_id: dAddrId,
-          scheduled_pickup_start: pickupMethod === 'COURIER' ? new Date(pickupStart).toISOString() : defaultStart,
-          scheduled_pickup_end: pickupMethod === 'COURIER' ? new Date(pickupEnd).toISOString() : defaultEnd,
+          scheduled_pickup_start: safeIsoDate(pickupStart, 2),
+          scheduled_pickup_end: safeIsoDate(pickupEnd, 4),
           items: [{ service_id: Number(selectedService), quantity: qtyVal || 1 }],
           pickup_method: pickupMethod,
           delivery_method: deliveryMethod,

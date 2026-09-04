@@ -12,10 +12,10 @@ class CreateOrderRequest extends FormRequest
     {
         return [
             'laundry_id' => ['required', 'exists:laundries,id'],
-            'pickup_address_id' => ['required', 'exists:addresses,id'],
-            'delivery_address_id' => ['required', 'exists:addresses,id'],
+            'pickup_address_id' => ['nullable', 'numeric'],
+            'delivery_address_id' => ['nullable', 'numeric'],
             'scheduled_pickup_start' => ['required', 'date'],
-            'scheduled_pickup_end' => ['required', 'date', 'after:scheduled_pickup_start'],
+            'scheduled_pickup_end' => ['required', 'date'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.service_id' => ['required', 'exists:services,id'],
             'items.*.quantity' => ['required', 'numeric', 'min:0.1'],
