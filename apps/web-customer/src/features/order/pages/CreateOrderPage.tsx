@@ -85,6 +85,11 @@ export default function CreateOrderPage() {
   }, [selectedLaundry, urlServiceId])
 
   const selectedLaundryObj = laundries.find((l) => l.id === Number(selectedLaundry))
+  const selectedServiceObj = services.find((s) => s.id === Number(selectedService))
+
+  const unitPrice = selectedServiceObj ? parseFloat(selectedServiceObj.base_price) || 0 : 0
+  const qtyVal = parseFloat(quantity) || 0
+  const estimatedSubtotal = unitPrice * qtyVal
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -127,7 +132,7 @@ export default function CreateOrderPage() {
           delivery_address_id: dAddrId,
           scheduled_pickup_start: pickupMethod === 'COURIER' ? new Date(pickupStart).toISOString() : defaultStart,
           scheduled_pickup_end: pickupMethod === 'COURIER' ? new Date(pickupEnd).toISOString() : defaultEnd,
-          items: [{ service_id: Number(selectedService), quantity: parseFloat(quantity) || 1 }],
+          items: [{ service_id: Number(selectedService), quantity: qtyVal || 1 }],
           pickup_method: pickupMethod,
           delivery_method: deliveryMethod,
         }),
@@ -143,253 +148,317 @@ export default function CreateOrderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800 pb-16 font-sans">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 pb-24 font-sans">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="container-app flex items-center justify-between py-3 max-w-xl">
+        <div className="container-app flex items-center justify-between py-3 max-w-5xl">
           <Brand size="sm" />
           <Link to="/laundries" className="btn-ghost !h-10 text-xs font-semibold">Batal</Link>
         </div>
       </header>
 
-      <main className="container-app py-6 max-w-xl">
-        <div className="mb-6 space-y-1">
-          <h1 className="font-display text-2xl font-black text-slate-900 tracking-tight">
-            Konfirmasi Pesanan
+      <main className="container-app py-6 max-w-5xl space-y-6">
+        <div className="space-y-1">
+          <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Konfirmasi & Buat Pesanan
           </h1>
-          <p className="text-xs text-slate-500">
-            Periksa detail laundry, layanan, dan metode pengiriman & pengambilan.
+          <p className="text-xs sm:text-sm text-slate-500">
+            Periksa rincian mitra laundry, jenis layanan, serta konfigurasi metode logistik.
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 border border-red-200 p-4 text-xs font-semibold text-red-700">
-            {error}
+          <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-xs font-bold text-red-700">
+            ⚠️ {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* 1. Selected Laundry Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 space-y-3 shadow-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">MITRA LAUNDRY</span>
-              <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Terpilih</span>
-            </div>
-
-            {selectedLaundryObj ? (
-              <div>
-                <h3 className="font-bold text-base text-slate-900">{selectedLaundryObj.business_name}</h3>
-                {selectedLaundryObj.address_line && (
-                  <p className="text-xs text-slate-500 mt-0.5">📍 {selectedLaundryObj.address_line}</p>
-                )}
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column (2 Cols on Desktop) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* 1. Selected Laundry Card */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-3 shadow-sm">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">MITRA LAUNDRY TERPILIH</span>
+                <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">✓ Terverifikasi</span>
               </div>
-            ) : (
-              <select
-                value={selectedLaundry}
-                onChange={(e) => setSelectedLaundry(e.target.value ? Number(e.target.value) : '')}
-                required
-                className="input text-xs"
-              >
-                <option value="">Pilih Laundry Mitra</option>
-                {laundries.map((l) => (
-                  <option key={l.id} value={l.id}>{l.business_name}</option>
-                ))}
-              </select>
-            )}
-          </div>
 
-          {/* 2. Service Selection & Quantity */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 space-y-4 shadow-sm">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">LAYANAN & ESTIMASI BERAT</span>
-
-            <div>
-              <label className="label text-xs">Pilih Layanan *</label>
-              <select
-                value={selectedService}
-                onChange={(e) => setSelectedService(e.target.value ? Number(e.target.value) : '')}
-                required
-                className="input text-xs font-medium"
-              >
-                <option value="">Pilih Layanan</option>
-                {services.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} — Rp {Number(s.base_price).toLocaleString('id-ID')} /{s.unit || 'kg'}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="label text-xs">Estimasi Berat / Jumlah (KG/Pcs) *</label>
-              <input
-                type="number"
-                step="0.1"
-                min="0.5"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                required
-                className="input text-xs font-medium"
-              />
-            </div>
-          </div>
-
-          {/* 3. Section 1: Pickup Option (Saat Mengirim Pakaian Awal) */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 space-y-4 shadow-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">1. METODE PENYERAHAN PAKAIAN (AWAL)</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setPickupMethod('COURIER')}
-                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
-                  pickupMethod === 'COURIER'
-                    ? 'border-[#00667e] bg-sky-50/50 ring-1 ring-[#00667e]'
-                    : 'border-slate-200 bg-slate-50'
-                }`}
-              >
-                <span className="text-xl">🛵</span>
-                <div>
-                  <p className="font-bold text-xs text-slate-900 mt-2">Jemput Kurir</p>
-                  <p className="text-[10px] text-slate-500">Kurir menjemput ke lokasi</p>
+              {selectedLaundryObj ? (
+                <div className="space-y-1">
+                  <h3 className="font-bold text-lg text-slate-900">{selectedLaundryObj.business_name}</h3>
+                  {selectedLaundryObj.address_line && (
+                    <p className="text-xs text-slate-500">📍 {selectedLaundryObj.address_line}</p>
+                  )}
                 </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPickupMethod('SELF')}
-                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
-                  pickupMethod === 'SELF'
-                    ? 'border-[#00667e] bg-sky-50/50 ring-1 ring-[#00667e]'
-                    : 'border-slate-200 bg-slate-50'
-                }`}
-              >
-                <span className="text-xl">🏪</span>
-                <div>
-                  <p className="font-bold text-xs text-slate-900 mt-2">Antar Sendiri</p>
-                  <p className="text-[10px] text-slate-500">Bawa sendiri ke outlet</p>
-                </div>
-              </button>
-            </div>
-
-            {pickupMethod === 'COURIER' ? (
-              <div className="space-y-3 pt-2">
-                <div>
-                  <label className="label text-xs">Alamat Penjemputan *</label>
+              ) : (
+                <div className="space-y-1 pt-1">
+                  <label className="label text-xs">Pilih Outlet Laundry *</label>
                   <select
-                    value={pickupAddress}
-                    onChange={(e) => setPickupAddress(e.target.value ? Number(e.target.value) : '')}
-                    required={pickupMethod === 'COURIER'}
+                    value={selectedLaundry}
+                    onChange={(e) => setSelectedLaundry(e.target.value ? Number(e.target.value) : '')}
+                    required
                     className="input text-xs"
                   >
-                    <option value="">Pilih Alamat Penjemputan</option>
-                    {addresses.map((a) => (
-                      <option key={a.id} value={a.id}>{a.label ?? 'Alamat'} — {a.address_line.slice(0, 30)}</option>
+                    <option value="">Pilih Laundry Mitra</option>
+                    {laundries.map((l) => (
+                      <option key={l.id} value={l.id}>{l.business_name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Service Selection & Quantity */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-5 shadow-sm">
+              <h2 className="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-3">
+                Layanan & Estimasi Berat / Jumlah
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="label text-xs">Pilih Layanan *</label>
+                  <select
+                    value={selectedService}
+                    onChange={(e) => setSelectedService(e.target.value ? Number(e.target.value) : '')}
+                    required
+                    className="input text-xs font-medium"
+                  >
+                    <option value="">Pilih Layanan</option>
+                    {services.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} — Rp {Number(s.base_price).toLocaleString('id-ID')} /{s.unit || 'kg'}
+                      </option>
                     ))}
                   </select>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="label text-xs">Jadwal Jemput Mulai *</label>
-                    <input
-                      type="datetime-local"
-                      value={pickupStart}
-                      onChange={(e) => setPickupStart(e.target.value)}
-                      required={pickupMethod === 'COURIER'}
-                      className="input text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="label text-xs">Jadwal Jemput Selesai *</label>
-                    <input
-                      type="datetime-local"
-                      value={pickupEnd}
-                      onChange={(e) => setPickupEnd(e.target.value)}
-                      required={pickupMethod === 'COURIER'}
-                      className="input text-xs"
-                    />
-                  </div>
+                <div>
+                  <label className="label text-xs">Estimasi Jumlah ({selectedServiceObj?.unit || 'KG/Pcs'}) *</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.5"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    required
+                    className="input text-xs font-medium"
+                  />
                 </div>
               </div>
-            ) : (
-              <div className="p-3 bg-slate-100 rounded-xl text-xs text-slate-600">
-                ℹ️ Anda mengantarkan pakaian langsung ke toko outlet laundry secara mandiri.
+            </div>
+
+            {/* 3. Pickup Logistics (Saat Mengirim Pakaian Awal) */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-5 shadow-sm">
+              <div className="border-b border-slate-100 pb-3">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">TAHAP 1</span>
+                <h2 className="text-base font-extrabold text-slate-900">Metode Penyerahan Pakaian (Awal)</h2>
               </div>
-            )}
-          </div>
 
-          {/* 4. Section 2: Delivery Option (Saat Pakaian Selesai Dicuci) */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 space-y-4 shadow-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">2. METODE PENGAMBILAN PAKAIAN (SELESAI)</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setDeliveryMethod('COURIER')}
-                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
-                  deliveryMethod === 'COURIER'
-                    ? 'border-[#00667e] bg-sky-50/50 ring-1 ring-[#00667e]'
-                    : 'border-slate-200 bg-slate-50'
-                }`}
-              >
-                <span className="text-xl">🚚</span>
-                <div>
-                  <p className="font-bold text-xs text-slate-900 mt-2">Diantar Kurir</p>
-                  <p className="text-[10px] text-slate-500">Dikirim kembali ke rumah</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDeliveryMethod('SELF')}
-                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
-                  deliveryMethod === 'SELF'
-                    ? 'border-[#00667e] bg-sky-50/50 ring-1 ring-[#00667e]'
-                    : 'border-slate-200 bg-slate-50'
-                }`}
-              >
-                <span className="text-xl">🚶</span>
-                <div>
-                  <p className="font-bold text-xs text-slate-900 mt-2">Ambil Sendiri</p>
-                  <p className="text-[10px] text-slate-500">Ambil sendiri di outlet</p>
-                </div>
-              </button>
-            </div>
-
-            {deliveryMethod === 'COURIER' ? (
-              <div className="pt-2">
-                <label className="label text-xs">Alamat Pengantaran *</label>
-                <select
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value ? Number(e.target.value) : '')}
-                  required={deliveryMethod === 'COURIER'}
-                  className="input text-xs"
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setPickupMethod('COURIER')}
+                  className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between space-y-2 ${
+                    pickupMethod === 'COURIER'
+                      ? 'border-[#00667e] bg-sky-50/60 ring-2 ring-[#00667e]/30'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
                 >
-                  <option value="">Pilih Alamat Pengantaran</option>
-                  {addresses.map((a) => (
-                    <option key={a.id} value={a.id}>{a.label ?? 'Alamat'} — {a.address_line.slice(0, 30)}</option>
-                  ))}
-                </select>
+                  <span className="text-2xl">🛵</span>
+                  <div>
+                    <p className="font-bold text-xs sm:text-sm text-slate-900">Jemput Kurir</p>
+                    <p className="text-[11px] text-slate-500">Kurir menjemput ke lokasi Anda</p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPickupMethod('SELF')}
+                  className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between space-y-2 ${
+                    pickupMethod === 'SELF'
+                      ? 'border-[#00667e] bg-sky-50/60 ring-2 ring-[#00667e]/30'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <span className="text-2xl">🏪</span>
+                  <div>
+                    <p className="font-bold text-xs sm:text-sm text-slate-900">Antar Sendiri</p>
+                    <p className="text-[11px] text-slate-500">Bawa pakaian langsung ke outlet</p>
+                  </div>
+                </button>
               </div>
-            ) : (
-              <div className="p-3 bg-slate-100 rounded-xl text-xs text-slate-600">
-                ℹ️ Anda akan mengambil pakaian yang sudah bersih secara langsung di outlet setelah siap.
+
+              {pickupMethod === 'COURIER' ? (
+                <div className="space-y-4 pt-2 border-t border-slate-100">
+                  <div>
+                    <label className="label text-xs">Alamat Penjemputan *</label>
+                    <select
+                      value={pickupAddress}
+                      onChange={(e) => setPickupAddress(e.target.value ? Number(e.target.value) : '')}
+                      required={pickupMethod === 'COURIER'}
+                      className="input text-xs"
+                    >
+                      <option value="">Pilih Alamat Penjemputan</option>
+                      {addresses.map((a) => (
+                        <option key={a.id} value={a.id}>{a.label ?? 'Alamat'} — {a.address_line.slice(0, 40)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="label text-xs">Jadwal Jemput Mulai *</label>
+                      <input
+                        type="datetime-local"
+                        value={pickupStart}
+                        onChange={(e) => setPickupStart(e.target.value)}
+                        required={pickupMethod === 'COURIER'}
+                        className="input text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="label text-xs">Jadwal Jemput Selesai *</label>
+                      <input
+                        type="datetime-local"
+                        value={pickupEnd}
+                        onChange={(e) => setPickupEnd(e.target.value)}
+                        required={pickupMethod === 'COURIER'}
+                        className="input text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-600">
+                  ℹ️ Anda mengantarkan pakaian secara mandiri ke outlet mitra laundry.
+                </div>
+              )}
+            </div>
+
+            {/* 4. Delivery Logistics (Saat Pakaian Selesai Dicuci) */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-5 shadow-sm">
+              <div className="border-b border-slate-100 pb-3">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">TAHAP 2</span>
+                <h2 className="text-base font-extrabold text-slate-900">Metode Pengambilan Pakaian (Selesai)</h2>
               </div>
-            )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('COURIER')}
+                  className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between space-y-2 ${
+                    deliveryMethod === 'COURIER'
+                      ? 'border-[#00667e] bg-sky-50/60 ring-2 ring-[#00667e]/30'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <span className="text-2xl">🚚</span>
+                  <div>
+                    <p className="font-bold text-xs sm:text-sm text-slate-900">Diantar Kurir</p>
+                    <p className="text-[11px] text-slate-500">Dikirim kembali ke alamat Anda</p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('SELF')}
+                  className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between space-y-2 ${
+                    deliveryMethod === 'SELF'
+                      ? 'border-[#00667e] bg-sky-50/60 ring-2 ring-[#00667e]/30'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <span className="text-2xl">🚶</span>
+                  <div>
+                    <p className="font-bold text-xs sm:text-sm text-slate-900">Ambil Sendiri</p>
+                    <p className="text-[11px] text-slate-500">Ambil sendiri ke outlet</p>
+                  </div>
+                </button>
+              </div>
+
+              {deliveryMethod === 'COURIER' ? (
+                <div className="pt-2 border-t border-slate-100">
+                  <label className="label text-xs">Alamat Pengantaran *</label>
+                  <select
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value ? Number(e.target.value) : '')}
+                    required={deliveryMethod === 'COURIER'}
+                    className="input text-xs"
+                  >
+                    <option value="">Pilih Alamat Pengantaran</option>
+                    {addresses.map((a) => (
+                      <option key={a.id} value={a.id}>{a.label ?? 'Alamat'} — {a.address_line.slice(0, 40)}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-600">
+                  ℹ️ Anda mengambil pakaian yang sudah selesai di outlet mitra laundry secara mandiri.
+                </div>
+              )}
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-[#00667e] hover:bg-[#005266] active:scale-[0.99] text-white font-bold text-sm py-3.5 rounded-full shadow-md transition"
-          >
-            {submitting ? 'Memproses Pesanan...' : 'Konfirmasi & Buat Pesanan →'}
-          </button>
+          {/* Right Column (Sticky Summary Sidebar on Desktop) */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-5 shadow-sm sticky top-24">
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-3">
+                Ringkasan Checkout
+              </h3>
+
+              <div className="space-y-3 text-xs">
+                {selectedLaundryObj && (
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">MITRA LAUNDRY</p>
+                    <p className="font-bold text-slate-900 mt-0.5">{selectedLaundryObj.business_name}</p>
+                  </div>
+                )}
+
+                {selectedServiceObj && (
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">LAYANAN DIPILIH</p>
+                    <p className="font-bold text-slate-900">{selectedServiceObj.name}</p>
+                    <p className="text-[11px] text-slate-500">
+                      {quantity} {selectedServiceObj.unit || 'kg'} x Rp {unitPrice.toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Estimasi Subtotal:</span>
+                    <span className="font-bold text-slate-900">Rp {estimatedSubtotal.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Penjemputan:</span>
+                    <span className="font-semibold text-slate-800">{pickupMethod === 'COURIER' ? '🛵 Kurir' : '🏪 Outlet'}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Pengantaran:</span>
+                    <span className="font-semibold text-slate-800">{deliveryMethod === 'COURIER' ? '🚚 Kurir' : '🚶 Outlet'}</span>
+                  </div>
+                  <div className="flex justify-between font-black text-sm text-slate-900 pt-3 border-t border-slate-200">
+                    <span>ESTIMASI TOTAL:</span>
+                    <span className="text-[#00667e]">Rp {estimatedSubtotal.toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-[#00667e] hover:bg-[#005266] active:scale-[0.99] text-white font-bold text-sm py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-md transition"
+              >
+                {submitting ? 'Memproses Pesanan...' : 'Konfirmasi & Buat Pesanan →'}
+              </button>
+
+              <div className="p-3 bg-sky-50 rounded-2xl text-[11px] text-[#00667e] font-semibold text-center">
+                🔒 Pembayaran dilakukan setelah penimbangan final dikonfirmasi.
+              </div>
+            </div>
+          </div>
         </form>
       </main>
     </div>
   )
 }
+
