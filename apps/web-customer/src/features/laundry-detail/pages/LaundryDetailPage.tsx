@@ -99,12 +99,21 @@ export default function LaundryDetailPage() {
           })
         : DEFAULT_SERVICES
 
+      let formattedHours = '08:00 - 22:00'
+      if (typeof raw.operating_hours === 'string' && raw.operating_hours.trim()) {
+        formattedHours = raw.operating_hours
+      } else if (typeof raw.operating_hours === 'object' && raw.operating_hours !== null) {
+        const open = raw.operating_hours.open || raw.operating_hours.start || '08:00'
+        const close = raw.operating_hours.close || raw.operating_hours.end || '22:00'
+        formattedHours = `${open} - ${close}`
+      }
+
       const enriched: LaundryDetail = {
         ...raw,
         rating: raw.rating || 4.8,
         review_count: raw.review_count || 124,
         distance: raw.distance || '1.2 km dari lokasimu',
-        operating_hours: raw.operating_hours || '08:00 - 22:00',
+        operating_hours: formattedHours,
         estimated_completion: raw.estimated_completion || '24 Jam Selesai',
         image_url: raw.image_url || 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80',
         services: mappedServices,
