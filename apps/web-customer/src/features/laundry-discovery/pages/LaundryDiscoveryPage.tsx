@@ -231,20 +231,27 @@ export default function LaundryDiscoveryPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {laundries.map((laundry) => (
-                <div key={laundry.id} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                <div
+                  key={laundry.id}
+                  onClick={() => navigate(`/laundries/${laundry.id}`)}
+                  className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between cursor-pointer group"
+                >
                   {/* Card Image */}
                   <div className="relative h-48 bg-slate-200">
                     <img
                       src={laundry.image_url}
                       alt={laundry.business_name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
                     {/* Badge Top Left */}
                     <span className="absolute top-3 left-3 bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
                       ✓ {laundry.badge}
                     </span>
                     {/* Heart Favorite Top Right */}
-                    <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center text-slate-700 hover:bg-white shadow-sm">
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center text-slate-700 hover:bg-white shadow-sm"
+                    >
                       ♡
                     </button>
                   </div>
@@ -253,7 +260,7 @@ export default function LaundryDiscoveryPage() {
                   <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start gap-2">
-                        <h3 className="font-bold text-base text-slate-900">{laundry.business_name}</h3>
+                        <h3 className="font-bold text-base text-slate-900 group-hover:text-[#00667e] transition">{laundry.business_name}</h3>
                         <div className="bg-amber-50 text-amber-700 text-xs font-extrabold px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0">
                           ⭐ {laundry.rating?.toFixed(1)}
                         </div>
@@ -272,6 +279,7 @@ export default function LaundryDiscoveryPage() {
                       </div>
                       <Link
                         to={`/laundries/${laundry.id}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="bg-[#00667e] hover:bg-[#005266] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition"
                       >
                         Pesan

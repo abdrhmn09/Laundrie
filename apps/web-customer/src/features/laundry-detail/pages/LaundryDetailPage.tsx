@@ -80,14 +80,23 @@ export default function LaundryDetailPage() {
       const res = await fetch(`/api/v1/laundries/${id}`)
       if (!res.ok) throw new Error('Detail laundry tidak ditemukan.')
       const data = await res.json()
-      const raw = data?.data ?? data
+      const raw = data?.laundry ?? data?.data ?? data
 
       const mappedServices: ServiceItem[] = (raw.services && raw.services.length > 0)
-        ? raw.services.map((s: any, idx: number) => ({
-            ...s,
-            description: s.description || DEFAULT_SERVICES[idx % DEFAULT_SERVICES.length].description,
-            icon: DEFAULT_SERVICES[idx % DEFAULT_SERVICES.length].icon,
-          }))
+        ? raw.services.map((s: any, idx: number) => {
+            const activePrice = s.prices && s.prices.length > 0 ? s.prices[0].price : null
+            const priceVal = activePrice || s.price_per_unit || s.base_price || (7000 + idx * 2000)
+            return {
+              id: s.id,
+              name: s.name || s.service_name || `Layanan ${s.unit || 'Kiloan'}`,
+              unit: s.unit || 'kg',
+              pricing_model: s.pricing_model || 'PER_UNIT',
+              price_per_unit: priceVal,
+              base_price: priceVal,
+              description: s.description || DEFAULT_SERVICES[idx % DEFAULT_SERVICES.length].description,
+              icon: DEFAULT_SERVICES[idx % DEFAULT_SERVICES.length].icon,
+            }
+          })
         : DEFAULT_SERVICES
 
       const enriched: LaundryDetail = {
@@ -112,9 +121,10 @@ export default function LaundryDetailPage() {
     }
   }
 
-  const handleProceedToOrder = () => {
+  const handleProceedToOrder = (overrideServiceId?: number | React.MouseEvent) => {
     if (!laundry) return
-    const serviceParam = selectedServiceId ? `&service_id=${selectedServiceId}` : ''
+    const targetServiceId = typeof overrideServiceId === 'number' ? overrideServiceId : selectedServiceId
+    const serviceParam = targetServiceId ? `&service_id=${targetServiceId}` : ''
     navigate(`/orders/new?laundry_id=${laundry.id}${serviceParam}`)
   }
 
@@ -214,7 +224,7 @@ export default function LaundryDetailPage() {
                     <h2 className="text-base font-extrabold text-slate-900">
                       Pilihan Layanan & Tarif
                     </h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Pilih jenis layanan yang ingin Anda pesan.</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Klik layanan yang ingin Anda pesan.</p>
                   </div>
                   <span className="text-xs font-bold text-[#00667e] bg-sky-50 px-3 py-1 rounded-full">
                     {laundry.services.length} Layanan Available
@@ -262,6 +272,23 @@ export default function LaundryDetailPage() {
                             {service.description}
                           </p>
                         )}
+
+                        <div className="flex items-center justify-between pt-2">
+                          <span className={`text-[11px] font-bold ${isSelected ? 'text-[#00667e]' : 'text-slate-400'}`}>
+                            {isSelected ? '✓ Layanan Terpilih' : 'Klik untuk memilih'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedServiceId(service.id)
+                              handleProceedToOrder(service.id)
+                            }}
+                            className="btn-primary !h-9 !px-4 !py-1 text-xs font-bold shadow-sm"
+                          >
+                            Pesan Layanan Ini →
+                          </button>
+                        </div>
                       </div>
                     )
                   })}
