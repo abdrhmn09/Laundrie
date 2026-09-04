@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import { Brand } from '../../../shared/components/Brand'
 
@@ -35,8 +35,19 @@ export default function DashboardPage() {
           <div className="card p-5"><p className="text-xs font-bold tracking-widest text-on-surface-variant">PERAN</p><p className="text-sm mt-1">Semua Staff = operasional umum (PRD §11)</p></div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 mt-6">
-          <div className="card-lifted p-6"><h3 className="font-display font-bold">Intake & Penimbangan</h3><p className="text-sm text-on-surface-variant">Mulai timbang, ambil foto bukti berat.</p><span className="badge-neutral mt-2">Weighing & Camera</span></div>
-          <div className="card-lifted p-6"><h3 className="font-display font-bold">Pemrosesan</h3><p className="text-sm text-on-surface-variant">Tandai siap diantar.</p><span className="badge-neutral mt-2">Processing</span></div>
+          <div className="card-lifted p-6">
+            <h3 className="font-display font-bold">Intake & Penimbangan (Weighing & Evidence)</h3>
+            <p className="text-sm text-on-surface-variant">Mulai timbang, ambil foto bukti berat dengan penjaminan hash SHA-256 (Fase 1).</p>
+            <div className="mt-4 flex gap-2 items-center">
+              <Link to="/orders/1/weighing" className="btn-primary !h-9 !px-4 text-xs">⚖️ Timbang Order #ORD-1001 →</Link>
+              <span className="badge-neutral">Weighing & Camera</span>
+            </div>
+          </div>
+          <div className="card-lifted p-6">
+            <h3 className="font-display font-bold">Pemrosesan</h3>
+            <p className="text-sm text-on-surface-variant">Tandai pakaian selesai diproses & siap diantar (READY_FOR_DELIVERY).</p>
+            <span className="badge-neutral mt-4 inline-block">Processing Flow</span>
+          </div>
         </div>
         {user.capabilities?.is_courier && <div className="mt-6 card p-4 bg-primary-container/20"><p className="text-sm font-bold">Anda juga Courier ({user.courier?.courier_type}) — buka web-courier untuk job pickup/delivery.</p><a href="http://127.0.0.1:5176" className="btn-primary !h-8 !px-3 text-xs mt-2">Buka web-courier</a></div>}
       </main>

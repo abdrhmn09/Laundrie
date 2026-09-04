@@ -203,6 +203,25 @@ export default function InvoicePage() {
                 <button onClick={() => window.print()} className="btn-secondary !h-9 text-xs font-bold">🖨️ Cetak / Simpan Invoice PDF</button>
               </div>
             )}
+
+            {/* Granular Order Navigation Toolbar */}
+            <div className="pt-4 border-t border-slate-100 space-y-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ALUR & FITUR PESANAN</span>
+              <div className="grid grid-cols-3 gap-2">
+                <Link to={`/orders/${id}/evidence`} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition text-center group">
+                  <span className="text-lg mb-1 group-hover:scale-110 transition-transform">⚖️</span>
+                  <span className="text-[11px] font-bold text-slate-700">Bukti Berat</span>
+                </Link>
+                <Link to={`/orders/${id}/complaint`} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition text-center group">
+                  <span className="text-lg mb-1 group-hover:scale-110 transition-transform">🚨</span>
+                  <span className="text-[11px] font-bold text-slate-700">Komplain</span>
+                </Link>
+                <Link to={`/orders/${id}/review`} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition text-center group">
+                  <span className="text-lg mb-1 group-hover:scale-110 transition-transform">⭐</span>
+                  <span className="text-[11px] font-bold text-slate-700">Ulasan</span>
+                </Link>
+              </div>
+            </div>
           </div>
         )}
       </main>

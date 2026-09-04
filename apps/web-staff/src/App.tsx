@@ -6,6 +6,7 @@ import GoogleCallbackPage from './features/auth/pages/GoogleCallbackPage'
 import StaffLaundryListPage from './features/staff/pages/StaffLaundryListPage'
 import DashboardPage from './features/dashboard/pages/DashboardPage'
 import WeighingPage from './features/weighing/pages/WeighingPage'
+import ProtectedRoute from './features/auth/components/ProtectedRoute'
 
 export default function App() {
   return (

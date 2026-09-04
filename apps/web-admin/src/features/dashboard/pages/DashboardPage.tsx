@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
-import { Brand } from '../../../shared/components/Brand'
+import AdminLayout from '../../../shared/components/AdminLayout'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -11,43 +11,64 @@ export default function DashboardPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-10 border-b bg-white/85 backdrop-blur"><div className="container-app flex justify-between py-3"><Brand size="sm" /><button onClick={handleLogout} className="btn-secondary !h-10">Keluar</button></div></header>
-        <main className="container-app py-12 max-w-xl text-center">
-          <div className="card-lifted p-8 space-y-4">
-            <h1 className="font-display text-2xl font-extrabold">Akses Admin Diperlukan</h1>
-            <p className="text-sm text-on-surface-variant">Akun {user?.email} bukan admin. Hubungi Super Admin.</p>
-            <button onClick={handleLogout} className="btn-secondary">Keluar</button>
-          </div>
-        </main>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="card-lifted p-8 space-y-4 max-w-md text-center">
+          <h1 className="font-display text-2xl font-extrabold">Akses Admin Diperlukan</h1>
+          <p className="text-sm text-on-surface-variant">Akun {user?.email} bukan admin. Hubungi Super Admin.</p>
+          <button onClick={handleLogout} className="btn-secondary">Keluar</button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b bg-white/85 backdrop-blur"><div className="container-app flex justify-between py-3"><Brand size="sm" /><div className="flex gap-3 items-center"><span className="badge-error">{role}</span><span className="text-sm font-semibold">{user.name}</span><button onClick={handleLogout} className="btn-secondary !h-10">Keluar</button></div></div></header>
-      <main className="container-app py-8">
-        <h1 className="font-display text-3xl font-extrabold">Dashboard Admin</h1>
-        <p className="text-sm text-on-surface-variant">Role: {role} • Least Privilege (PRD §20)</p>
-
-        <div className="grid gap-4 sm:grid-cols-3 mt-8">
-          <div className="card p-5"><p className="text-xs font-bold tracking-widest">OPERATIONS</p><p className="text-sm mt-1">Moderasi Laundry & Courier, Override Order</p><span className="badge-warning mt-2">Ops Admin</span></div>
-          <div className="card p-5"><p className="text-xs font-bold tracking-widest">FINANCE</p><p className="text-sm mt-1">Refund, Settlement Payout</p><span className="badge-success mt-2">Finance Admin</span></div>
-          <div className="card p-5"><p className="text-xs font-bold tracking-widest">SUPER</p><p className="text-sm mt-1">Config & RBAC, Audit Log Penuh</p><span className="badge-error mt-2">Super Admin</span></div>
+    <AdminLayout>
+      <div className="p-8 max-w-5xl space-y-6">
+        <div>
+          <h1 className="font-display text-3xl font-extrabold text-slate-900">Dashboard Admin</h1>
+          <p className="text-sm text-slate-500 mt-1">Role: <span className="font-bold text-slate-700">{role}</span> • Principle of Least Privilege & Mandatory Audit Logging (PRD §20)</p>
         </div>
 
-        <div className="card-lifted p-6 mt-6">
-          <h3 className="font-display font-bold">Menu Admin (11 screen Design §28)</h3>
-          <div className="flex flex-wrap gap-2 mt-3">
-            {['Dashboard Operasional','Orders Management','Laundry Moderasi','Courier Moderasi','Evidence Compliance','Complaints','Payments','Settlements','Audit Logs','Settings','Users'].map(s => <span key={s} className="badge-neutral">{s}</span>)}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <p className="text-[10px] font-extrabold tracking-widest text-amber-600 uppercase">OPERATIONS</p>
+            <p className="text-xs font-semibold text-slate-600 mt-1">Moderasi Laundry & Courier, Override Status Order</p>
+            <Link to="/orders" className="mt-3 inline-block text-xs font-bold text-[#00667e]">Override Order →</Link>
           </div>
-          <div className="mt-4">
-            <a href="/verifications" className="btn-primary !h-9 !px-4 text-xs">Kelola Dokumen Verifikasi →</a>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <p className="text-[10px] font-extrabold tracking-widest text-emerald-600 uppercase">FINANCE</p>
+            <p className="text-xs font-semibold text-slate-600 mt-1">Refund Komplain & Settlement Payout Mitra</p>
+            <Link to="/settlements" className="mt-3 inline-block text-xs font-bold text-[#00667e]">Review Settlement →</Link>
           </div>
-          <p className="text-xs text-on-surface-variant mt-3">Akses dibatasi per role — Finance tidak bisa override order, Ops tidak bisa eksekusi payout (PRD §20.2).</p>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <p className="text-[10px] font-extrabold tracking-widest text-purple-600 uppercase">SUPER ADMIN</p>
+            <p className="text-xs font-semibold text-slate-600 mt-1">Dynamic Platform Config & Full Audit Logs</p>
+            <Link to="/audit-logs" className="mt-3 inline-block text-xs font-bold text-[#00667e]">Lihat Audit Trail →</Link>
+          </div>
         </div>
-      </main>
-    </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <h3 className="font-display text-base font-extrabold text-slate-900">Modul Utama Platform Admin Console</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Link to="/verifications" className="p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition">
+              <span className="text-lg block">📋</span>
+              <span className="text-xs font-bold text-slate-800">Verifikasi Dokumen</span>
+            </Link>
+            <Link to="/complaints" className="p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition">
+              <span className="text-lg block">⚖️</span>
+              <span className="text-xs font-bold text-slate-800">Arbitrase Komplain</span>
+            </Link>
+            <Link to="/orders" className="p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition">
+              <span className="text-lg block">📦</span>
+              <span className="text-xs font-bold text-slate-800">Override Status Order</span>
+            </Link>
+            <Link to="/platform-config" className="p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition">
+              <span className="text-lg block">⚙️</span>
+              <span className="text-xs font-bold text-slate-800">Platform Config</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </AdminLayout>
   )
 }

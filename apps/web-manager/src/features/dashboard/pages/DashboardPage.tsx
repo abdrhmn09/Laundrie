@@ -88,7 +88,8 @@ export default function DashboardPage() {
           <div className="card-lifted p-6">
             <h3 className="font-display font-bold">Laporan & Settlement</h3>
             <p className="text-sm text-on-surface-variant mt-1">Lihat pendapatan dan settlement laundry.</p>
-            <div className="mt-4">
+            <div className="mt-4 flex gap-2">
+              <Link to="/settlements" className="btn-primary !h-8 !px-3 text-xs">Minta Settlement →</Link>
               <span className="badge-neutral">Settlement Laundry</span>
             </div>
           </div>

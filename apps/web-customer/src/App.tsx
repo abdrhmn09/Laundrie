@@ -53,6 +53,7 @@ export default function App() {
             <Route path="/profile/courier/onboarding" element={<CourierOnboardingPage />} />
             <Route path="/addresses" element={<AddressesPage />} />
             <Route path="/orders/new" element={<CreateOrderPage />} />
+            <Route path="/orders/:id" element={<InvoicePage />} />
             <Route path="/orders/:id/evidence" element={<WeightEvidencePage />} />
             <Route path="/orders/:id/invoice" element={<InvoicePage />} />
             <Route path="/orders/:id/complaint" element={<ComplaintPage />} />
