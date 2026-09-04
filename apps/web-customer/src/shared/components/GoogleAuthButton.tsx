@@ -103,7 +103,6 @@ export default function GoogleAuthButton({ mode = 'login' }: { mode?: 'login' | 
           {loading ? 'Memproses...' : mode === 'register' ? 'Daftar dengan Google' : 'Masuk dengan Google'}
         </button>
         {error && <p className="text-xs text-error">{error}</p>}
-        <p className="text-xs text-on-surface-variant">Tanpa VITE_GOOGLE_CLIENT_ID, akan redirect via backend Socialite.</p>
       </div>
     )
   }

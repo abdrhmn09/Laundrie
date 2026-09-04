@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Brand } from '../../../shared/components/Brand'
-import { useAuth } from '../../auth/context/AuthContext'
+import { Brand } from './Brand'
+import { useAuth } from '../../features/auth/context/AuthContext'
 
 type NavItem = {
   href: string

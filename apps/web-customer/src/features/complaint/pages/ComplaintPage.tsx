@@ -62,13 +62,13 @@ export default function ComplaintPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 pb-16 font-sans">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="container-app flex items-center justify-between py-3 max-w-xl">
+        <div className="container-app flex items-center justify-between py-3 max-w-2xl">
           <Brand size="sm" />
           <Link to="/dashboard" className="btn-ghost !h-10 text-xs font-semibold">← Kembali</Link>
         </div>
       </header>
 
-      <main className="container-app py-6 max-w-xl">
+      <main className="container-app py-6 max-w-2xl">
         <div className="mb-5">
           <h1 className="font-display text-2xl font-black text-slate-900">Ajukan Komplain Sengketa</h1>
           <p className="text-xs text-slate-500 mt-0.5">Pesanan #{id} · Komplain akan ditinjau oleh Tim Operasional Laundrie dalam 1×24 jam.</p>

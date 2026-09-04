@@ -179,7 +179,7 @@ export default function LandingPage() {
             <h2 className="font-display text-3xl font-extrabold tracking-tight text-on-surface sm:text-4xl">
               Tiga langkah mudah
             </h2>
-            <p className="mx-auto mt-3 max-w-md text-on-surface-variant">
+            <p className="mx-auto mt-3 max-w-xl text-on-surface-variant">
               Mulai dari pemesanan sampai pakaian bersih diantar ke rumah Anda.
             </p>
           </AnimateOnView>
@@ -209,7 +209,7 @@ export default function LandingPage() {
             <h2 className="font-display text-3xl font-extrabold tracking-tight text-on-surface sm:text-4xl">
               Pilih paket yang sesuai
             </h2>
-            <p className="mx-auto mt-3 max-w-md text-on-surface-variant">
+            <p className="mx-auto mt-3 max-w-xl text-on-surface-variant">
               Harga transparan tanpa biaya tersembunyi.
             </p>
           </AnimateOnView>
@@ -266,7 +266,7 @@ export default function LandingPage() {
             <h2 className="font-display text-3xl font-extrabold tracking-tight text-on-surface sm:text-4xl">
               Mengapa Laundrie?
             </h2>
-            <p className="mx-auto mt-3 max-w-md text-on-surface-variant">
+            <p className="mx-auto mt-3 max-w-xl text-on-surface-variant">
               Kami memastikan setiap pesanan ditangani dengan transparan dan akuntabel.
             </p>
           </AnimateOnView>

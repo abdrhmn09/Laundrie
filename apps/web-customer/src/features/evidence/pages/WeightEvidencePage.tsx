@@ -35,7 +35,7 @@ export default function WeightEvidencePage() {
   const fetchWeighing = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/orders/${id}/weighing`, {
+      const res = await fetch(`/api/v1/orders/${id}/weighing`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           Accept: 'application/json',
@@ -55,7 +55,7 @@ export default function WeightEvidencePage() {
     setIsSubmitting(true)
     setError(null)
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/orders/${id}/weighing/confirm`, {
+      const res = await fetch(`/api/v1/orders/${id}/weighing/confirm`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -77,13 +77,13 @@ export default function WeightEvidencePage() {
   return (
     <div className="min-h-screen bg-background pb-12">
       <header className="sticky top-0 z-10 border-b bg-white/85 backdrop-blur">
-        <div className="container-app flex justify-between py-3">
+        <div className="container-app flex justify-between items-center py-3 max-w-3xl">
           <Brand size="sm" />
-          <button onClick={() => navigate('/orders')} className="btn-secondary !h-10">Daftar Pesanan</button>
+          <button onClick={() => navigate('/orders')} className="btn-secondary !h-10 text-xs font-semibold">Daftar Pesanan</button>
         </div>
       </header>
 
-      <main className="container-app py-8 max-w-xl">
+      <main className="container-app py-8 max-w-3xl">
         <div className="card-lifted p-6 space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="font-display text-2xl font-extrabold">Bukti Penimbangan Foto</h1>

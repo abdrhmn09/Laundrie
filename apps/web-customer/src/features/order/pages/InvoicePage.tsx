@@ -104,13 +104,13 @@ export default function InvoicePage() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 pb-16 font-sans">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="container-app flex items-center justify-between py-3 max-w-xl">
+        <div className="container-app flex items-center justify-between py-3 max-w-3xl">
           <Brand size="sm" />
           <Link to="/dashboard" className="btn-ghost !h-10 text-xs font-semibold">Kembali</Link>
         </div>
       </header>
 
-      <main className="container-app py-6 max-w-xl">
+      <main className="container-app py-6 max-w-3xl">
         {error && (
           <div className="mb-4 rounded-xl bg-red-50 border border-red-200 p-4 text-xs font-semibold text-red-700">
             {error}
@@ -140,16 +140,16 @@ export default function InvoicePage() {
             </div>
 
             {/* Merchant & Client Info */}
-            <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-100">
               <div>
-                <p className="font-bold text-slate-400 text-[10px] uppercase">MITRA LAUNDRY</p>
-                <p className="font-bold text-slate-900 mt-0.5">{order.laundry?.business_name}</p>
-                <p className="text-slate-500 text-[11px]">{order.laundry?.address_line}</p>
+                <p className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">MITRA LAUNDRY</p>
+                <p className="font-bold text-slate-900 mt-0.5 text-sm">{order.laundry?.business_name}</p>
+                <p className="text-slate-500 text-xs mt-0.5">{order.laundry?.address_line}</p>
               </div>
               <div>
-                <p className="font-bold text-slate-400 text-[10px] uppercase">PELANGGAN</p>
-                <p className="font-bold text-slate-900 mt-0.5">{order.customer?.name}</p>
-                <p className="text-slate-500 text-[11px]">{order.customer?.phone}</p>
+                <p className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">PELANGGAN</p>
+                <p className="font-bold text-slate-900 mt-0.5 text-sm">{order.customer?.name}</p>
+                <p className="text-slate-500 text-xs mt-0.5">{order.customer?.phone}</p>
               </div>
             </div>
 

@@ -151,14 +151,14 @@ export default function ProfilePage() {
             </Link>
           </div>
 
-          {/* Capability Hub — PRD §7 One Account, Multiple Capabilities */}
+          {/* Capability Hub — One Account, Multiple Capabilities */}
           <div className="card-lifted p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-lg font-bold text-on-surface">Peran & Kemampuan Anda</h2>
-              <span className="badge-active">PRD §7</span>
+              <span className="badge-active">Multi-Role Active</span>
             </div>
             <p className="text-sm text-on-surface-variant">
-              Satu akun dapat menjadi Customer, Manager, Staff, dan Courier sekaligus tanpa membuat akun kedua.
+              Satu akun dapat menjadi Customer, Manager, Staff, dan Courier sekaligus tanpa perlu membuat akun kedua.
             </p>
 
             {/* Existing capabilities */}
@@ -230,7 +230,7 @@ export default function ProfilePage() {
             {(!user?.capabilities?.is_manager || !user?.capabilities?.is_staff || !user?.capabilities?.is_courier) && (
               <div className="space-y-3 pt-2">
                 <h3 className="font-display text-sm font-bold text-on-surface">Mulai Berperan di Laundrie</h3>
-                <p className="text-xs text-on-surface-variant">Pilih peran, Anda akan diarahkan ke web khusus untuk melengkapi dokumen verifikasi (PRD §8, §12).</p>
+                <p className="text-xs text-on-surface-variant">Pilih peran, Anda akan diarahkan ke portal khusus untuk melengkapi dokumen verifikasi.</p>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {!user?.capabilities?.is_manager && (
                     <a href={`http://127.0.0.1:5174/register?token=${encodeURIComponent(getToken() ?? '')}`} className="card p-4 hover:shadow-md transition-shadow text-left group">
