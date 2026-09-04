@@ -47,4 +47,9 @@ class Courier extends Model
     {
         return $this->courier_type === 'laundry_staff';
     }
+
+    public function jobs()
+    {
+        return $this->hasMany(CourierJob::class);
+    }
 }
