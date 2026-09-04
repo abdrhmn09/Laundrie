@@ -18,7 +18,12 @@ import CourierOnboardingPage from './features/courier/pages/CourierOnboardingPag
 import CatalogPage from './features/catalog/pages/CatalogPage'
 import AddressesPage from './features/address/pages/AddressesPage'
 import LaundryDiscoveryPage from './features/laundry-discovery/pages/LaundryDiscoveryPage'
+import LaundryDetailPage from './features/laundry-detail/pages/LaundryDetailPage'
 import CreateOrderPage from './features/order/pages/CreateOrderPage'
+import WeightEvidencePage from './features/evidence/pages/WeightEvidencePage'
+import InvoicePage from './features/order/pages/InvoicePage'
+import ComplaintPage from './features/complaint/pages/ComplaintPage'
+import ReviewPage from './features/review/pages/ReviewPage'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
 
 export default function App() {
@@ -36,9 +41,10 @@ export default function App() {
 
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/laundries" element={<LaundryDiscoveryPage />} />
+          <Route path="/laundries/:id" element={<LaundryDetailPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/verify-email" element={<VerifyEmailPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<LaundryDiscoveryPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/change-password" element={<ChangePasswordPage />} />
             <Route path="/profile/sessions" element={<SessionsPage />} />
@@ -47,6 +53,10 @@ export default function App() {
             <Route path="/profile/courier/onboarding" element={<CourierOnboardingPage />} />
             <Route path="/addresses" element={<AddressesPage />} />
             <Route path="/orders/new" element={<CreateOrderPage />} />
+            <Route path="/orders/:id/evidence" element={<WeightEvidencePage />} />
+            <Route path="/orders/:id/invoice" element={<InvoicePage />} />
+            <Route path="/orders/:id/complaint" element={<ComplaintPage />} />
+            <Route path="/orders/:id/review" element={<ReviewPage />} />
           </Route>
         </Routes>
       </AuthProvider>

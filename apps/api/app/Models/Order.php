@@ -75,6 +75,41 @@ class Order extends Model
         return $this->hasMany(OrderStatusHistory::class);
     }
 
+    public function weightMeasurements(): HasMany
+    {
+        return $this->hasMany(WeightMeasurement::class);
+    }
+
+    public function weightEvidences(): HasMany
+    {
+        return $this->hasMany(WeightEvidence::class);
+    }
+
+    public function courierJobs(): HasMany
+    {
+        return $this->hasMany(CourierJob::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class);
+    }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
+
     public function scopeForCustomer($query, int $customerId)
     {
         return $query->where('customer_id', $customerId);

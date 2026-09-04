@@ -90,7 +90,17 @@ class OrderController extends \App\Http\Controllers\Controller
                 'changed_by' => $user->id,
             ]);
 
-            return $order->load(['laundry', 'items.service', 'pickupAddress', 'deliveryAddress']);
+            // Auto-dispatch courier job if pickup_method is COURIER or by default
+            if ($request->input('pickup_method', 'COURIER') === 'COURIER') {
+                \App\Models\CourierJob::create([
+                    'order_id' => $order->id,
+                    'job_type' => 'PICKUP',
+                    'status' => 'DISPATCHED',
+                    'notes' => 'Tugas Penjemputan Otomatis dari Pesanan Baru #' . $order->order_number,
+                ]);
+            }
+
+            return $order->load(['laundry', 'items.service', 'pickupAddress', 'deliveryAddress', 'courierJobs']);
         });
 
         return response()->json([

@@ -31,7 +31,7 @@ export default function LoginPage() {
       if (res.requires_verification) {
         navigate('/verify-email')
       } else {
-        navigate('/dashboard')
+        navigate('/laundries')
       }
     } catch (err) {
       setError(err as ApiError)

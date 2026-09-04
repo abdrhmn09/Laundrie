@@ -117,10 +117,51 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{id}/confirm', [OrderController::class, 'confirm']);
     Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 
+    // Weighing & Evidence — PRD §16, Architecture §10
+    Route::get('/orders/{id}/weighing', [\App\Domain\Weighing\Http\Controllers\WeighingController::class, 'show']);
+    Route::post('/orders/{id}/weighing/record', [\App\Domain\Weighing\Http\Controllers\WeighingController::class, 'record']);
+    Route::post('/orders/{id}/weighing/confirm', [\App\Domain\Weighing\Http\Controllers\WeighingController::class, 'confirmReview']);
+    Route::post('/orders/{id}/weighing/invalidate', [\App\Domain\Weighing\Http\Controllers\WeighingController::class, 'invalidate']);
+
+    // Courier Jobs — PRD §17, Architecture §8
+    Route::get('/courier/jobs', [\App\Domain\Courier\Http\Controllers\CourierJobController::class, 'index']);
+    Route::get('/courier/jobs/active', [\App\Domain\Courier\Http\Controllers\CourierJobController::class, 'active']);
+    Route::post('/courier/jobs/{id}/accept', [\App\Domain\Courier\Http\Controllers\CourierJobController::class, 'accept']);
+    Route::post('/courier/jobs/{id}/status', [\App\Domain\Courier\Http\Controllers\CourierJobController::class, 'updateStatus']);
+
+    // Payments & Invoices — PRD §18, Architecture §8
+    Route::post('/orders/{id}/payments/charge', [\App\Domain\Payment\Http\Controllers\PaymentController::class, 'charge']);
+    Route::post('/payments/{id}/simulate', [\App\Domain\Payment\Http\Controllers\PaymentController::class, 'simulate']);
+    Route::get('/orders/{id}/invoice', [\App\Domain\Invoice\Http\Controllers\InvoiceController::class, 'show']);
+
+    // Settlements & Earnings — PRD §19, Architecture §8
+    Route::get('/laundry/settlements', [\App\Domain\Settlement\Http\Controllers\SettlementController::class, 'laundrySettlements']);
+    Route::post('/laundry/settlements/request', [\App\Domain\Settlement\Http\Controllers\SettlementController::class, 'requestLaundrySettlement']);
+    Route::get('/courier/earnings', [\App\Domain\Settlement\Http\Controllers\SettlementController::class, 'courierEarnings']);
+    Route::post('/courier/settlements/withdraw', [\App\Domain\Settlement\Http\Controllers\SettlementController::class, 'withdrawCourierEarnings']);
+
+    // Complaints & Dispute — PRD §21, Architecture §8
+    Route::post('/orders/{id}/complaints', [\App\Domain\Complaint\Http\Controllers\ComplaintController::class, 'store']);
+    Route::get('/complaints', [\App\Domain\Complaint\Http\Controllers\ComplaintController::class, 'index']);
+
+    // Reviews & Ratings — PRD §22, Architecture §8
+    Route::post('/orders/{id}/reviews', [\App\Domain\Review\Http\Controllers\ReviewController::class, 'store']);
+    Route::get('/laundries/{id}/reviews', [\App\Domain\Review\Http\Controllers\ReviewController::class, 'laundryReviews']);
+
+    // Notifications — PRD §23, Architecture §8
+    Route::get('/notifications', [\App\Domain\Notification\Http\Controllers\NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read', [\App\Domain\Notification\Http\Controllers\NotificationController::class, 'markRead']);
+    Route::post('/notifications/read-all', [\App\Domain\Notification\Http\Controllers\NotificationController::class, 'markAllRead']);
+
     // Verification documents — Schema §4.26
     Route::post('/verification-documents', [VerificationDocumentController::class, 'store']);
     Route::get('/verification-documents', [VerificationDocumentController::class, 'index']);
 });
+
+Route::post('/v1/payments/webhook', [\App\Domain\Payment\Http\Controllers\PaymentController::class, 'webhook']);
+
+Route::get('/v1/weighing-evidence/{id}/photo', [\App\Domain\Weighing\Http\Controllers\WeighingController::class, 'servePhoto'])
+    ->name('weighing.photo');
 
 // ── Admin verification management (PRD §20, Architecture §9.2.1) ──
 Route::prefix('v1/admin')->middleware('auth:sanctum')->group(function () {
@@ -128,4 +169,27 @@ Route::prefix('v1/admin')->middleware('auth:sanctum')->group(function () {
     Route::get('/verification-documents/{id}', [AdminVerificationController::class, 'show']);
     Route::get('/verification-documents/{id}/file', [AdminVerificationController::class, 'file']);
     Route::post('/verification-documents/{id}/review', [AdminVerificationController::class, 'review']);
+
+    // Admin Settlements
+    Route::get('/settlements', [\App\Domain\Settlement\Http\Controllers\SettlementController::class, 'adminIndex']);
+    Route::post('/settlements/{id}/approve', [\App\Domain\Settlement\Http\Controllers\SettlementController::class, 'approveSettlement']);
+
+    // Admin Complaints Arbitration — PRD §21
+    Route::get('/complaints', [\App\Domain\Complaint\Http\Controllers\AdminComplaintController::class, 'index']);
+    Route::post('/complaints/{id}/resolve', [\App\Domain\Complaint\Http\Controllers\AdminComplaintController::class, 'resolve']);
+
+    // Admin Order Override — Phase 5, PRD §24
+    Route::get('/orders', [\App\Domain\Admin\Http\Controllers\AdminOrderController::class, 'index']);
+    Route::post('/orders/{id}/override', [\App\Domain\Admin\Http\Controllers\AdminOrderController::class, 'override']);
+
+    // Platform Configs — Super Admin only, Phase 5
+    Route::get('/configs', [\App\Domain\Admin\Http\Controllers\AdminSettingController::class, 'index']);
+    Route::post('/configs', [\App\Domain\Admin\Http\Controllers\AdminSettingController::class, 'upsert']);
+
+    // Audit Logs — Immutable Trail Viewer, Phase 5
+    Route::get('/audit-logs', [\App\Domain\Admin\Http\Controllers\AuditLogController::class, 'index']);
+    Route::get('/audit-logs/{id}', [\App\Domain\Admin\Http\Controllers\AuditLogController::class, 'show']);
 });
+
+// Public config endpoint
+Route::get('/v1/configs/{key}', [\App\Domain\Admin\Http\Controllers\AdminSettingController::class, 'publicConfig']);

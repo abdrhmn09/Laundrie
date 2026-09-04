@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './features/auth/context/AuthContext'
 import LoginPage from './features/auth/pages/LoginPage'
 import RegisterPage from './features/auth/pages/RegisterPage'
+import GoogleCallbackPage from './features/auth/pages/GoogleCallbackPage'
 import DashboardPage from './features/dashboard/pages/DashboardPage'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
 
