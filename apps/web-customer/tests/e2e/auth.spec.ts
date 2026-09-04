@@ -10,11 +10,13 @@ test('halaman login menampilkan form dan validasi kosong', async ({ page }) => {
 })
 
 test('registrasi pengguna baru berhasil dan masuk ke dashboard', async ({ page }) => {
-  const email = `ui_${Date.now()}@example.com`
+  const uid = `${Date.now()}${Math.floor(Math.random()*10000)}`
+  const email = `ui_${uid}@example.com`
+  const phone = `08${String(Math.floor(100000000 + Math.random()*900000000)).slice(0,9)}`
   await page.goto(`${WEB_URL}/register`)
   await page.getByLabel('Nama Lengkap').fill('Pengguna UI')
   await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Nomor WhatsApp').fill(`08${String(Date.now()).slice(-9)}`)
+  await page.getByLabel('Nomor WhatsApp').fill(phone)
   await page.getByLabel('Password', { exact: true }).fill('password123')
   await page.getByLabel('Konfirmasi Password').fill('password123')
   await page.getByLabel(/Saya menyetujui/).check()
@@ -29,16 +31,19 @@ test('login gagal dengan password salah menampilkan pesan error', async ({ page 
   await page.goto(`${WEB_URL}/login`)
   await page.getByLabel('Email').fill('pengguna-tidak-ada@example.com')
   await page.getByLabel('Password', { exact: true }).fill('salah123')
-  await page.getByRole('button', { name: 'Masuk' }).click()
+  await page.getByRole('button', { name: 'Masuk', exact: true }).click()
 
   await expect(page.getByText(/Email atau password salah/i).first()).toBeVisible({ timeout: 10000 })
 })
 
 test('alur lengkap: register -> logout -> login -> dashboard', async ({ page }) => {
-  const email = `flow_${Date.now()}@example.com`
+  const uid = `${Date.now()}${Math.floor(Math.random()*10000)}`
+  const email = `flow_${uid}@example.com`
+  const phone = `08${String(Math.floor(100000000 + Math.random()*900000000)).slice(0,9)}`
   await page.goto(`${WEB_URL}/register`)
   await page.getByLabel('Nama Lengkap').fill('Alur Lengkap')
   await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Nomor WhatsApp').fill(phone)
   await page.getByLabel('Password', { exact: true }).fill('password123')
   await page.getByLabel('Konfirmasi Password').fill('password123')
   await page.getByLabel(/Saya menyetujui/).check()
@@ -50,7 +55,7 @@ test('alur lengkap: register -> logout -> login -> dashboard', async ({ page }) 
 
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password', { exact: true }).fill('password123')
-  await page.getByRole('button', { name: 'Masuk' }).click()
+  await page.getByRole('button', { name: 'Masuk', exact: true }).click()
   // Setelah login, user yang belum verifikasi akan tetap di halaman verifikasi (PRD One Account)
   await expect(page.getByRole('heading', { name: 'Verifikasi Email Anda' })).toBeVisible({ timeout: 10000 })
 })

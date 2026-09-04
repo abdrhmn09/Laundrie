@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Domain\Auth\Enums\UserRole;
 use App\Domain\Auth\Enums\UserStatus;
+use App\Models\Address;
 use App\Models\AdminUser;
 use App\Models\Courier;
 use App\Models\Customer;
@@ -209,6 +210,61 @@ class UserSeeder extends Seeder
                     ['role' => $role]
                 );
             }
+        }
+
+        // Seed Staff Openings for Laundrie Express Peudada
+        $laundry = Laundry::first();
+        if ($laundry) {
+            \App\Models\StaffOpening::updateOrCreate(
+                ['laundry_id' => $laundry->id, 'title' => 'Staf Operasional Laundry'],
+                [
+                    'description' => 'Dibutuhkan staf cuci & setrika full time untuk outlet Peudada.',
+                    'quota' => 2,
+                    'status' => 'OPEN',
+                ]
+            );
+
+            // Seed Services & Service Prices for Laundrie Express Peudada
+            $service = \App\Models\Service::updateOrCreate(
+                ['laundry_id' => $laundry->id, 'name' => 'Cuci Komplit Kiloan'],
+                [
+                    'service_type' => 'LAUNDRY',
+                    'pricing_model' => 'PER_KG',
+                    'base_price' => 7000,
+                    'price_per_unit' => 7000,
+                    'unit' => 'kg',
+                    'minimum_charge' => 7000,
+                    'estimated_duration' => 24,
+                    'status' => 'ACTIVE',
+                ]
+            );
+            \App\Models\ServicePrice::updateOrCreate(
+                ['service_id' => $service->id, 'valid_until' => null],
+                [
+                    'base_price' => 7000,
+                    'price_per_unit' => 7000,
+                    'minimum_charge' => 7000,
+                    'valid_from' => now(),
+                ]
+            );
+        }
+
+        // Seed Customer Address for Naruto Uzumaki
+        $narutoCust = Customer::where('email', 'uzmk.naruto19@gmail.com')->first();
+        if ($narutoCust) {
+            Address::updateOrCreate(
+                ['customer_id' => $narutoCust->id, 'label' => 'Rumah Utama'],
+                [
+                    'recipient_name' => 'Naruto Uzumaki',
+                    'phone' => '081269000007',
+                    'address_line' => 'Jl. Syiah Kuala No. 5, Peudada',
+                    'latitude' => 5.2010,
+                    'longitude' => 96.7010,
+                    'delivery_notes' => 'Pagar warna biru',
+                    'is_default' => true,
+                    'status' => 'ACTIVE',
+                ]
+            );
         }
     }
 }

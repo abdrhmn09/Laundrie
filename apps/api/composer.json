@@ -10,6 +10,7 @@
         "laravel/framework": "^13.17",
         "laravel/horizon": "^5.48",
         "laravel/sanctum": "*",
+        "laravel/socialite": "^5.30",
         "laravel/tinker": "^3.0",
         "predis/predis": "^3.6"
     },

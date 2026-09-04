@@ -18,27 +18,28 @@ class AdminVerificationController extends \App\Http\Controllers\Controller
 
         $query = VerificationDocument::query()->with(['reviewer']);
 
+        // Admin hanya kelola dokumen laundry & courier (freelance), bukan staff (KTP staff diverifikasi manager)
+        $query->whereIn('owner_type', ['laundry', 'courier']);
+
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
         if ($request->filled('owner_type')) {
-            $query->where('owner_type', $request->input('owner_type'));
+            // Jika admin filter spesifik, tetap batasi hanya laundry/courier
+            if (in_array($request->input('owner_type'), ['laundry', 'courier'])) {
+                $query->where('owner_type', $request->input('owner_type'));
+            }
         }
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('document_type', 'ilike', "%{$search}%")
                   ->orWhere('file_path', 'ilike', "%{$search}%");
-                // Cari di user terkait via owner
-                // Untuk owner_type=user, cari di users
+                // Cari di user terkait via laundry/courier (admin hanya kelola laundry & courier)
                 $userIds = \App\Models\User::where('name', 'ilike', "%{$search}%")
                     ->orWhere('email', 'ilike', "%{$search}%")
                     ->pluck('id')->toArray();
                 if (!empty($userIds)) {
-                    $q->orWhere(function ($qq) use ($userIds) {
-                        $qq->where('owner_type', 'user')->whereIn('owner_id', $userIds);
-                    });
-                    // Juga untuk laundry yang dimiliki user tersebut
                     $laundryIds = \App\Models\Laundry::whereIn('user_id', $userIds)->pluck('id')->toArray();
                     if (!empty($laundryIds)) {
                         $q->orWhere(function ($qq) use ($laundryIds) {
@@ -57,40 +58,9 @@ class AdminVerificationController extends \App\Http\Controllers\Controller
 
         $docs = $query->orderByDesc('created_at')->paginate($request->integer('per_page', 15));
 
-        // Enrich with owner user info for display (tampilkan dokumen yang dimiliki user)
+        // Enrich with owner user info for display (tampilkan dokumen yang dimiliki user per tipe)
         $docs->getCollection()->transform(function ($doc) {
-            $ownerUser = null;
-            $ownerLabel = null;
-            try {
-                if ($doc->owner_type === 'user') {
-                    $u = \App\Models\User::find($doc->owner_id);
-                    if ($u) {
-                        $ownerUser = ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'phone' => $u->phone];
-                        $ownerLabel = $u->name . ' (' . $u->email . ')';
-                    }
-                } elseif ($doc->owner_type === 'laundry') {
-                    $l = \App\Models\Laundry::with('owner')->find($doc->owner_id);
-                    if ($l && $l->owner) {
-                        $ownerUser = ['id' => $l->owner->id, 'name' => $l->owner->name, 'email' => $l->owner->email];
-                        $ownerLabel = $l->business_name . ' — ' . $l->owner->name . ' (' . $l->owner->email . ')';
-                    }
-                } elseif ($doc->owner_type === 'courier') {
-                    $c = \App\Models\Courier::with('user', 'laundry')->find($doc->owner_id);
-                    if ($c && $c->user) {
-                        $ownerUser = ['id' => $c->user->id, 'name' => $c->user->name, 'email' => $c->user->email];
-                        $ownerLabel = $c->user->name . ' (' . $c->user->email . ') — ' . $c->courier_type . ($c->laundry ? ' @ ' . $c->laundry->business_name : '');
-                    }
-                } elseif ($doc->owner_type === 'staff_application') {
-                    $app = \App\Models\StaffApplication::with('applicant', 'laundry')->find($doc->owner_id);
-                    if ($app && $app->applicant) {
-                        $ownerUser = ['id' => $app->applicant->id, 'name' => $app->applicant->name, 'email' => $app->applicant->email];
-                        $ownerLabel = $app->applicant->name . ' (' . $app->applicant->email . ') → ' . ($app->laundry->business_name ?? 'Laundry #' . $app->laundry_id) . ' [' . $app->application_type . ']';
-                    }
-                }
-            } catch (\Exception $e) {}
-            $doc->setAttribute('owner_user', $ownerUser);
-            $doc->setAttribute('owner_label', $ownerLabel);
-            return $doc;
+            return $this->enrichDoc($doc);
         });
 
         return response()->json($docs);
@@ -172,20 +142,87 @@ class AdminVerificationController extends \App\Http\Controllers\Controller
         }
 
         $doc = VerificationDocument::findOrFail($id);
+        $doc = $this->enrichDoc($doc);
 
-        // Generate signed URL for preview (for local, just return file_path)
         $url = null;
         if ($doc->file_path) {
-            try {
-                $url = \Illuminate\Support\Facades\Storage::disk('local')->temporaryUrl($doc->file_path, now()->addMinutes(10));
-            } catch (\Exception $e) {
-                $url = \Illuminate\Support\Facades\Storage::disk('local')->url($doc->file_path);
-            }
+            $url = url("/api/v1/admin/verification-documents/{$doc->id}/file");
         }
 
         return response()->json([
             'document' => $doc,
             'preview_url' => $url,
         ]);
+    }
+
+    public function file(Request $request, int $id)
+    {
+        $user = $request->user();
+        if (! $user->isAdmin()) {
+            return response()->json(['message' => 'Hanya admin yang dapat mengakses.'], 403);
+        }
+
+        $doc = VerificationDocument::findOrFail($id);
+        $path = storage_path('app/private/' . $doc->file_path);
+        // Fallback to local disk path
+        if (! file_exists($path)) {
+            $path = storage_path('app/' . $doc->file_path);
+        }
+        if (! file_exists($path)) {
+            return response()->json(['message' => 'File tidak ditemukan.'], 404);
+        }
+
+        $mime = mime_content_type($path) ?: 'application/octet-stream';
+        return response()->file($path, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
+        ]);
+    }
+
+    private function enrichDoc($doc)
+    {
+        $ownerUser = null;
+        $ownerLabel = null;
+        try {
+            if ($doc->owner_type === 'user') {
+                $u = \App\Models\User::find($doc->owner_id);
+                if ($u) {
+                    $ownerUser = ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'phone' => $u->phone, 'role' => $u->role];
+                    $ownerLabel = $u->name . ' (' . $u->email . ') — Pelanggan/Staff';
+                }
+            } elseif ($doc->owner_type === 'laundry') {
+                $l = \App\Models\Laundry::with('owner')->find($doc->owner_id);
+                if ($l && $l->owner) {
+                    $ownerUser = ['id' => $l->owner->id, 'name' => $l->owner->name, 'email' => $l->owner->email, 'phone' => $l->owner->phone, 'role' => $l->owner->role];
+                    $ownerLabel = $l->business_name . ' — ' . $l->owner->name . ' (' . $l->owner->email . ')';
+                }
+            } elseif ($doc->owner_type === 'courier') {
+                $c = \App\Models\Courier::with('user', 'laundry')->find($doc->owner_id);
+                if ($c && $c->user) {
+                    $ownerUser = ['id' => $c->user->id, 'name' => $c->user->name, 'email' => $c->user->email, 'phone' => $c->user->phone, 'role' => $c->user->role];
+                    $ownerLabel = $c->user->name . ' (' . $c->user->email . ') — ' . $c->courier_type . ($c->laundry ? ' @ ' . $c->laundry->business_name : ' (Freelance)');
+                }
+            } elseif ($doc->owner_type === 'staff_application') {
+                $app = \App\Models\StaffApplication::with('applicant', 'laundry')->find($doc->owner_id);
+                if ($app && $app->applicant) {
+                    $ownerUser = ['id' => $app->applicant->id, 'name' => $app->applicant->name, 'email' => $app->applicant->email, 'phone' => $app->applicant->phone, 'role' => $app->applicant->role];
+                    $ownerLabel = $app->applicant->name . ' (' . $app->applicant->email . ') → ' . ($app->laundry->business_name ?? 'Laundry #' . $app->laundry_id) . ' [' . $app->application_type . ']';
+                }
+            }
+        } catch (\Exception $e) {}
+        $doc->setAttribute('owner_user', $ownerUser);
+        $doc->setAttribute('owner_label', $ownerLabel);
+        // User type badge
+        $userType = 'Customer';
+        if ($ownerUser) {
+            if ($doc->owner_type === 'laundry') $userType = 'Laundry (Manager)';
+            elseif ($doc->owner_type === 'courier' && str_contains($ownerLabel ?? '', 'Freelance')) $userType = 'Kurir Freelance';
+            elseif ($doc->owner_type === 'courier') $userType = 'Kurir Staff Laundry';
+            elseif ($doc->owner_type === 'staff_application') $userType = 'Staff Pelamar';
+            elseif ($doc->owner_type === 'user') $userType = 'Staff (KTP)';
+            else $userType = $ownerUser['role'] ?? 'User';
+        }
+        $doc->setAttribute('user_type_label', $userType);
+        return $doc;
     }
 }

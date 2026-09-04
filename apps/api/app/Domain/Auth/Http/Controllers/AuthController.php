@@ -113,6 +113,11 @@ class AuthController extends \App\Http\Controllers\Controller
 
     public function verifyEmail(Request $request, int $id, string $hash): JsonResponse
     {
+        // Verifikasi signature URL (harus valid & belum expired) — frontend meneruskan ?expires&signature dari email
+        if (! $request->hasValidSignature()) {
+            return response()->json(['message' => 'Tautan verifikasi tidak valid atau sudah kadaluarsa.'], Response::HTTP_BAD_REQUEST);
+        }
+
         $user = User::findOrFail($id);
 
         if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {

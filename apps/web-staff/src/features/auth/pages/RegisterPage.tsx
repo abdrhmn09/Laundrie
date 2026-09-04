@@ -6,6 +6,7 @@ import { FadeIn } from '../../../shared/components/motion'
 import { PasswordStrengthMeter } from '../../../shared/components/PasswordStrengthMeter'
 import { useAuth } from '../context/AuthContext'
 import { getFieldError, getToken, type ApiError } from '../api/authApi'
+import GoogleAuthButton from '../../../shared/components/GoogleAuthButton'
 
 type Opening = { id: number; laundry: { business_name: string }; title: string; quota: number; status: string }
 
@@ -228,6 +229,17 @@ export default function RegisterPage() {
             {submitting && <span className="spinner" aria-hidden="true" />}
             {submitting ? 'Mengirim Lamaran…' : isLoggedIn ? 'Kirim Lamaran Staff' : 'Daftar & Lamar Staff'}
           </button>
+
+          <div className="relative py-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#e1eef3]" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-3 text-xs text-on-surface-variant">atau</span>
+            </div>
+          </div>
+
+          <GoogleAuthButton mode="register" />
 
           <p className="text-center text-sm text-on-surface-variant">
             Sudah punya akun Staff? <Link to="/login" className="font-semibold text-primary hover:underline">Masuk di sini</Link>

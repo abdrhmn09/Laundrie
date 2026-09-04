@@ -5,6 +5,7 @@ import { Field } from '../../../shared/components/Field'
 import { FadeIn } from '../../../shared/components/motion'
 import { useAuth } from '../context/AuthContext'
 import { getFieldError, type ApiError } from '../api/authApi'
+import GoogleAuthButton from '../../../shared/components/GoogleAuthButton'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -30,7 +31,7 @@ export default function LoginPage() {
       if (res.requires_verification) {
         navigate('/verify-email')
       } else {
-        navigate('/dashboard')
+        navigate('/laundries')
       }
     } catch (err) {
       setError(err as ApiError)
@@ -138,6 +139,17 @@ export default function LoginPage() {
             {submitting && <span className="spinner" aria-hidden="true" />}
             {submitting ? 'Memproses...' : 'Masuk'}
           </button>
+
+          <div className="relative py-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#e1eef3]" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-3 text-xs text-on-surface-variant">atau</span>
+            </div>
+          </div>
+
+          <GoogleAuthButton mode="login" />
 
           <p className="text-center text-sm text-on-surface-variant">
             Belum punya akun?{' '}

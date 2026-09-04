@@ -50,6 +50,11 @@ class Laundry extends Model
         return $this->hasMany(StaffOpening::class);
     }
 
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
+    }
+
     public function isManager(User $user): bool
     {
         return $this->user_id === $user->id;
