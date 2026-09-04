@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import { getToken } from '../../auth/api/authApi'
 import { laundryApi } from '../api/laundryApi'
@@ -8,7 +8,6 @@ import { Field } from '../../../shared/components/Field'
 import { FadeIn } from '../../../shared/components/motion'
 
 export default function CreateLaundryPage() {
-  const navigate = useNavigate()
   const { user, setUser } = useAuth()
   const [businessName, setBusinessName] = useState('')
   const [addressLine, setAddressLine] = useState('')

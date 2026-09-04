@@ -34,7 +34,7 @@ export default function LaundryDiscoveryPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('Terdekat')
-  const [selectedAddress, setSelectedAddress] = useState('Jl. Wash Street No. 42, Kebayoran...')
+  const [selectedAddress] = useState('Jl. Wash Street No. 42, Kebayoran...')
 
   const fetchLaundries = async (q = '') => {
     try {
