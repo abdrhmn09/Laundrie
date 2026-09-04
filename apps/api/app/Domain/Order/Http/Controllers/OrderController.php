@@ -48,7 +48,7 @@ class OrderController extends \App\Http\Controllers\Controller
 
         $laundry = \App\Models\Laundry::where('id', $data['laundry_id'])->where('status', 'ACTIVE')->firstOrFail();
 
-        $order = DB::transaction(function () use ($customer, $laundry, $data, $pickup, $delivery, $user) {
+        $order = DB::transaction(function () use ($customer, $laundry, $data, $pickup, $delivery, $user, $request) {
             $orderNumber = 'LDR-' . date('Y') . '-' . str_pad((string) (Order::count() + 1), 6, '0', STR_PAD_LEFT);
 
             $estimatedTotal = 0;
